@@ -1,5 +1,6 @@
 # Ignorar ambientes virtuais e dependências
 venv/
+.venv/
 node_modules/
 __pycache__/
 
