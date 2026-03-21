@@ -1,0 +1,14 @@
+# Ignorar ambientes virtuais e dependências
+venv/
+.venv/
+node_modules/
+__pycache__/
+
+# Variáveis de ambiente (senhas do banco)
+.env
+
+# Arquivos do banco de dados
+*.sqlite3
+
+# anotações para rodar comandos como subir front, back, etc
+commands.txt

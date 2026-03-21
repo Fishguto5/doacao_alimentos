@@ -13,3 +13,32 @@ Um site que tem como objetivo facilitar na doação de alimentos no Brasil atrav
 
 - 260230, Maria Cecília Torres Vianna
 
+# Inicialização do Repositório:
+
+## Crie um ambiente virtual Python:
+```
+python -m venv .venv
+```
+Inicialize o Virtual Env através do comando:
+```
+source .venv/bin/activate       # Para Linux
+.\.venv\Scripts\Activate.ps1    # Para Windows
+```
+
+## Instale as dependências e Inicialização do Backend:
+```
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+## Inicialização do frontend
+```
+cd frontend
+npm install
+npm run dev
+```
+
+## Requirements:
+Python - 3.14.3+
+npm - 10.9.2+
