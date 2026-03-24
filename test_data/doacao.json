@@ -1,0 +1,13 @@
+{
+  "doador": 1,
+  "receptor": null,
+  "titulo": "Doação de Maçãs",
+  "descricao": "Maçãs frescas colhidas ontem, em perfeito estado",
+  "imagem_desc_url": "https://example.com/maca.jpg",
+  "status": "disponivel",
+  "cep": "01310100",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "bairro": "Centro",
+  "estimativa_peso": 5.50
+}

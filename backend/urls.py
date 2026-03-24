@@ -20,10 +20,21 @@ from django.contrib import admin
 from django.urls import include, path
 from core.views import *
 from . import views
+from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('debug/', include('debug_toolbar.urls')),
-    path('person/',view_person, name='person'),
+    path('person/', view_person, name='person'),
+    path('usuario/', view_usuario, name='usuario'),
+    path('categoria/', view_categoria, name='categoria'),
+    path('doacao/', view_doacao, name='doacao'),
+    path('solicitacao-doacao/', view_solicitacao_doacao, name='solicitacao_doacao'),
+    path('alimento/', view_alimento, name='alimento'),
+    path('notificacao/', view_notificacao, name='notificacao'),
+    path('avaliacao/', view_avaliacao, name='avaliacao'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # url para usar o swagger, que é uma interface gráfica para explorar a API
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
     path('', views.test),      
 ]

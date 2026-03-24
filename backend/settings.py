@@ -24,7 +24,6 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,8 +33,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'core',
     'debug_toolbar',
-    'rest_framework'
+    'rest_framework',
+    'drf_spectacular'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    # não estamos exigindo autenticação ou tokens, dado que não temos autenticação implementada
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -47,6 +56,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
+
+# Configure Spectacular settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Site de Doação API',
+    'DESCRIPTION': 'API para administração de doações de alimentos, como solicitações, notificações e avaliações.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # Hide auth methods in docs while the API has no auth configured.
+    'AUTHENTICATION_WHITELIST': [],
+}
 
 INTERNAL_IPS = [
     '127.0.0.1',
