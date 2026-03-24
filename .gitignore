@@ -13,3 +13,6 @@ __pycache__/
 # anotações para rodar comandos como subir front, back, etc
 commands.txt
 prompts.txt
+
+# removendo o arquivo gerado pela migracao do django
+*_initial.py
