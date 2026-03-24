@@ -32,6 +32,36 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Usando PostgreSQL
+
+O projeto agora aceita PostgreSQL por variáveis de ambiente, com SQLite como fallback. Isso permite começar simples e trocar de banco sem reescrever o backend.
+
+1. Instale o PostgreSQL na sua máquina.
+2. Crie um banco de dados com o nome que quiser, por exemplo `doacao_alimentos`.
+3. Crie um arquivo `.env` na raiz do projeto com base em `.env.example`.
+4. Preencha os dados de acesso do seu banco.
+5. Rode as migrations novamente.
+
+Exemplo de `.env`:
+
+```
+USE_POSTGRES=true
+POSTGRES_DB=doacao_alimentos
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=sua_senha
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+```
+
+Comandos para aplicar no banco PostgreSQL:
+
+```
+python manage.py migrate
+python manage.py runserver
+```
+
+Se quiser voltar temporariamente para SQLite, basta remover o `.env` ou definir `USE_POSTGRES=false`.
+
 ## Inicialização do frontend
 ```
 cd frontend
