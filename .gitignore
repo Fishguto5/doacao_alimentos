@@ -14,8 +14,7 @@ __pycache__/
 commands.txt
 prompts.txt
 
-# removendo o arquivo gerado pela migracao do django
-*_initial.py
+# migrations precisam ser versionadas para CI/testes
 
 #configuracoes locais 
 .vscode

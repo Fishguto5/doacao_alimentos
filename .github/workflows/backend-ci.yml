@@ -32,6 +32,9 @@ jobs:
           python -m pip install build
           python -m build
 
+      - name: Check migrations are committed
+        run: python manage.py makemigrations --check --dry-run
+
       - name: Apply migrations
         run: python manage.py migrate
 
