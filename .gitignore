@@ -16,3 +16,6 @@ prompts.txt
 
 # removendo o arquivo gerado pela migracao do django
 *_initial.py
+
+#configuracoes locais 
+.vscode
