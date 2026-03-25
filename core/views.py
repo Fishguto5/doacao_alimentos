@@ -313,21 +313,6 @@ def crud_docs(serializer_class, tag):
                 ),
             },
         )(func)
-        func = extend_schema(
-            methods=['DELETE'],
-            tags=[tag],
-            summary=f'Deletar {resource_name}',
-            description='Remove um registro pelo id enviado no body.',
-            request=DELETE_ID_SERIALIZER,
-            examples=[
-                OpenApiExample(
-                    f'{resource_name} DELETE Request',
-                    value={'id': 1},
-                    request_only=True,
-                ),
-            ],
-            responses={204: OpenApiResponse(description='Registro removido com sucesso.')},
-        )(func)
         return func
 
     return decorator
@@ -339,7 +324,7 @@ def view_dtl(request):
 
 
 @crud_docs(PersonSerializer, 'person')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_person(request):
     # GET method to retrieve all persons
     if request.method == 'GET':
@@ -373,18 +358,12 @@ def view_person(request):
             return Response({'msg': 'Person updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # DELETE method to delete a person
-    elif request.method == 'DELETE':
-        person_obj = Person.objects.get(pk=request.data.get('id'))
-        person_obj.delete()
-        return Response({'msg': 'Person deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # Usuario Views
 @crud_docs(UsuarioSerializer, 'usuario')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_usuario(request):
     if request.method == 'GET':
         usuario_obj = Usuario.objects.all()
@@ -414,17 +393,12 @@ def view_usuario(request):
             return Response({'msg': 'Usuario updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        usuario_obj = Usuario.objects.get(pk=request.data.get('id'))
-        usuario_obj.delete()
-        return Response({'msg': 'Usuario deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # Categoria Views
 @crud_docs(CategoriaSerializer, 'categoria')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_categoria(request):
     if request.method == 'GET':
         categoria_obj = Categoria.objects.all()
@@ -454,17 +428,12 @@ def view_categoria(request):
             return Response({'msg': 'Categoria updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        categoria_obj = Categoria.objects.get(pk=request.data.get('id'))
-        categoria_obj.delete()
-        return Response({'msg': 'Categoria deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # Doacao Views
 @crud_docs(DoacaoSerializer, 'doacao')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_doacao(request):
     if request.method == 'GET':
         doacao_obj = Doacao.objects.all()
@@ -494,17 +463,12 @@ def view_doacao(request):
             return Response({'msg': 'Doacao updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        doacao_obj = Doacao.objects.get(pk=request.data.get('id'))
-        doacao_obj.delete()
-        return Response({'msg': 'Doacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # SolicitacaoDoacao Views
 @crud_docs(SolicitacaoDoacaoSerializer, 'solicitacao-doacao')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_solicitacao_doacao(request):
     if request.method == 'GET':
         solicitacao_obj = SolicitacaoDoacao.objects.all()
@@ -534,17 +498,12 @@ def view_solicitacao_doacao(request):
             return Response({'msg': 'SolicitacaoDoacao updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        solicitacao_obj = SolicitacaoDoacao.objects.get(pk=request.data.get('id'))
-        solicitacao_obj.delete()
-        return Response({'msg': 'SolicitacaoDoacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # Alimento Views
 @crud_docs(AlimentoSerializer, 'alimento')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_alimento(request):
     if request.method == 'GET':
         alimento_obj = Alimento.objects.all()
@@ -574,17 +533,12 @@ def view_alimento(request):
             return Response({'msg': 'Alimento updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        alimento_obj = Alimento.objects.get(pk=request.data.get('id'))
-        alimento_obj.delete()
-        return Response({'msg': 'Alimento deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # Notificacao Views
 @crud_docs(NotificacaoSerializer, 'notificacao')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_notificacao(request):
     if request.method == 'GET':
         notificacao_obj = Notificacao.objects.all()
@@ -614,17 +568,12 @@ def view_notificacao(request):
             return Response({'msg': 'Notificacao updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        notificacao_obj = Notificacao.objects.get(pk=request.data.get('id'))
-        notificacao_obj.delete()
-        return Response({'msg': 'Notificacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # Avaliacao Views
 @crud_docs(AvaliacaoSerializer, 'avaliacao')
-@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_avaliacao(request):
     if request.method == 'GET':
         avaliacao_obj = Avaliacao.objects.all()
@@ -654,15 +603,10 @@ def view_avaliacao(request):
             return Response({'msg': 'Avaliacao updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        avaliacao_obj = Avaliacao.objects.get(pk=request.data.get('id'))
-        avaliacao_obj.delete()
-        return Response({'msg': 'Avaliacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-# Detail Views (GET individual by ID)
+# Detail Views (GET/DELETE individual by ID)
 def detail_docs(serializer_class, tag):
     examples = CRUD_EXAMPLES.get(tag, {})
     resource_name = tag.replace('-', ' ').title()
@@ -670,6 +614,7 @@ def detail_docs(serializer_class, tag):
 
     def decorator(func):
         func = extend_schema(
+            methods=['GET'],
             tags=[tag],
             summary=f'Obter {resource_name} por ID',
             description=f'Retorna um registro específico de {resource_name}.',
@@ -690,94 +635,135 @@ def detail_docs(serializer_class, tag):
                 ),
             },
         )(func)
+        func = extend_schema(
+            methods=['DELETE'],
+            tags=[tag],
+            summary=f'Deletar {resource_name}',
+            description=f'Remove um registro específico de {resource_name}.',
+            responses={
+                204: OpenApiResponse(description='Registro removido com sucesso.'),
+            },
+        )(func)
         return func
 
     return decorator
 
 
 @detail_docs(PersonSerializer, 'person')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_person_detail(request, id):
     try:
         person_obj = Person.objects.get(pk=id)
-        serializer = PersonSerializer(person_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = PersonSerializer(person_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            person_obj.delete()
+            return Response({'msg': 'Person deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Person.DoesNotExist:
         return Response({'msg': 'Person not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(UsuarioSerializer, 'usuario')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_usuario_detail(request, id):
     try:
         usuario_obj = Usuario.objects.get(pk=id)
-        serializer = UsuarioSerializer(usuario_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = UsuarioSerializer(usuario_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            usuario_obj.delete()
+            return Response({'msg': 'Usuario deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Usuario.DoesNotExist:
         return Response({'msg': 'Usuario not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(CategoriaSerializer, 'categoria')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_categoria_detail(request, id):
     try:
         categoria_obj = Categoria.objects.get(pk=id)
-        serializer = CategoriaSerializer(categoria_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = CategoriaSerializer(categoria_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            categoria_obj.delete()
+            return Response({'msg': 'Categoria deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Categoria.DoesNotExist:
         return Response({'msg': 'Categoria not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(DoacaoSerializer, 'doacao')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_doacao_detail(request, id):
     try:
         doacao_obj = Doacao.objects.get(pk=id)
-        serializer = DoacaoSerializer(doacao_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = DoacaoSerializer(doacao_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            doacao_obj.delete()
+            return Response({'msg': 'Doacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Doacao.DoesNotExist:
         return Response({'msg': 'Doacao not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(SolicitacaoDoacaoSerializer, 'solicitacao-doacao')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_solicitacao_doacao_detail(request, id):
     try:
         solicitacao_obj = SolicitacaoDoacao.objects.get(pk=id)
-        serializer = SolicitacaoDoacaoSerializer(solicitacao_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = SolicitacaoDoacaoSerializer(solicitacao_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            solicitacao_obj.delete()
+            return Response({'msg': 'SolicitacaoDoacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except SolicitacaoDoacao.DoesNotExist:
         return Response({'msg': 'SolicitacaoDoacao not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(AlimentoSerializer, 'alimento')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_alimento_detail(request, id):
     try:
         alimento_obj = Alimento.objects.get(pk=id)
-        serializer = AlimentoSerializer(alimento_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = AlimentoSerializer(alimento_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            alimento_obj.delete()
+            return Response({'msg': 'Alimento deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Alimento.DoesNotExist:
         return Response({'msg': 'Alimento not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(NotificacaoSerializer, 'notificacao')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_notificacao_detail(request, id):
     try:
         notificacao_obj = Notificacao.objects.get(pk=id)
-        serializer = NotificacaoSerializer(notificacao_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = NotificacaoSerializer(notificacao_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            notificacao_obj.delete()
+            return Response({'msg': 'Notificacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Notificacao.DoesNotExist:
         return Response({'msg': 'Notificacao not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(AvaliacaoSerializer, 'avaliacao')
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def view_avaliacao_detail(request, id):
     try:
         avaliacao_obj = Avaliacao.objects.get(pk=id)
-        serializer = AvaliacaoSerializer(avaliacao_obj)
-        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = AvaliacaoSerializer(avaliacao_obj)
+            return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            avaliacao_obj.delete()
+            return Response({'msg': 'Avaliacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Avaliacao.DoesNotExist:
         return Response({'msg': 'Avaliacao not found'}, status=status.HTTP_404_NOT_FOUND)
