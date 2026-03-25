@@ -38,5 +38,8 @@ jobs:
       - name: Apply migrations
         run: python manage.py migrate
 
+      - name: Show applied migrations for core
+        run: python manage.py showmigrations core
+
       - name: Run tests
-        run: pytest
+        run: pytest --ds=backend.settings --create-db -v
