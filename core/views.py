@@ -660,3 +660,124 @@ def view_avaliacao(request):
         return Response({'msg': 'Avaliacao deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
     return Response({'msg': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+# Detail Views (GET individual by ID)
+def detail_docs(serializer_class, tag):
+    examples = CRUD_EXAMPLES.get(tag, {})
+    resource_name = tag.replace('-', ' ').title()
+    item_response = _success_response_serializer(serializer_class, f'{resource_name}DetailSuccessResponse')
+
+    def decorator(func):
+        func = extend_schema(
+            tags=[tag],
+            summary=f'Obter {resource_name} por ID',
+            description=f'Retorna um registro específico de {resource_name}.',
+            responses={
+                200: OpenApiResponse(
+                    response=item_response,
+                    description='Registro obtido com sucesso.',
+                    examples=[
+                        OpenApiExample(
+                            f'{resource_name} GET Detail Response',
+                            value={
+                                'msg': 'Successfully retrieved data',
+                                'data': examples.get('item', {'id': 1}),
+                            },
+                            response_only=True,
+                        ),
+                    ],
+                ),
+            },
+        )(func)
+        return func
+
+    return decorator
+
+
+@detail_docs(PersonSerializer, 'person')
+@api_view(['GET'])
+def view_person_detail(request, id):
+    try:
+        person_obj = Person.objects.get(pk=id)
+        serializer = PersonSerializer(person_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except Person.DoesNotExist:
+        return Response({'msg': 'Person not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@detail_docs(UsuarioSerializer, 'usuario')
+@api_view(['GET'])
+def view_usuario_detail(request, id):
+    try:
+        usuario_obj = Usuario.objects.get(pk=id)
+        serializer = UsuarioSerializer(usuario_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except Usuario.DoesNotExist:
+        return Response({'msg': 'Usuario not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@detail_docs(CategoriaSerializer, 'categoria')
+@api_view(['GET'])
+def view_categoria_detail(request, id):
+    try:
+        categoria_obj = Categoria.objects.get(pk=id)
+        serializer = CategoriaSerializer(categoria_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except Categoria.DoesNotExist:
+        return Response({'msg': 'Categoria not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@detail_docs(DoacaoSerializer, 'doacao')
+@api_view(['GET'])
+def view_doacao_detail(request, id):
+    try:
+        doacao_obj = Doacao.objects.get(pk=id)
+        serializer = DoacaoSerializer(doacao_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except Doacao.DoesNotExist:
+        return Response({'msg': 'Doacao not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@detail_docs(SolicitacaoDoacaoSerializer, 'solicitacao-doacao')
+@api_view(['GET'])
+def view_solicitacao_doacao_detail(request, id):
+    try:
+        solicitacao_obj = SolicitacaoDoacao.objects.get(pk=id)
+        serializer = SolicitacaoDoacaoSerializer(solicitacao_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except SolicitacaoDoacao.DoesNotExist:
+        return Response({'msg': 'SolicitacaoDoacao not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@detail_docs(AlimentoSerializer, 'alimento')
+@api_view(['GET'])
+def view_alimento_detail(request, id):
+    try:
+        alimento_obj = Alimento.objects.get(pk=id)
+        serializer = AlimentoSerializer(alimento_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except Alimento.DoesNotExist:
+        return Response({'msg': 'Alimento not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@detail_docs(NotificacaoSerializer, 'notificacao')
+@api_view(['GET'])
+def view_notificacao_detail(request, id):
+    try:
+        notificacao_obj = Notificacao.objects.get(pk=id)
+        serializer = NotificacaoSerializer(notificacao_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except Notificacao.DoesNotExist:
+        return Response({'msg': 'Notificacao not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@detail_docs(AvaliacaoSerializer, 'avaliacao')
+@api_view(['GET'])
+def view_avaliacao_detail(request, id):
+    try:
+        avaliacao_obj = Avaliacao.objects.get(pk=id)
+        serializer = AvaliacaoSerializer(avaliacao_obj)
+        return Response({'msg': 'Successfully retrieved data', 'data': serializer.data}, status=status.HTTP_200_OK)
+    except Avaliacao.DoesNotExist:
+        return Response({'msg': 'Avaliacao not found'}, status=status.HTTP_404_NOT_FOUND)
