@@ -32,6 +32,26 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Dependencias via pyproject.toml (recomendado)
+
+Para desenvolvimento (inclui ferramentas de qualidade):
+
+```
+pip install -e ".[dev]"
+```
+
+Para usar semantic release no backend:
+
+```
+pip install -e ".[release]"
+```
+
+Executar release em modo de teste:
+
+```
+semantic-release version --noop
+```
+
 ## Usando PostgreSQL
 
 O projeto agora aceita PostgreSQL por variáveis de ambiente, com SQLite como fallback. Isso permite começar simples e trocar de banco sem reescrever o backend.
