@@ -4,6 +4,7 @@ from core.models import (
     SolicitacaoDoacao, Alimento, Notificacao, Avaliacao
 )
 
+# serializer irá transformar os dados de uma "forma" para outra. por exemplo, de um modelo de banco para um json
 
 class PersonSerializer(serializers.ModelSerializer):
     class Meta:

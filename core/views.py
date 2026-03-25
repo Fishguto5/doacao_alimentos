@@ -212,7 +212,7 @@ def _success_response_serializer(serializer_class, name, many=False):
         },
     )
 
-
+# serve para enriquecer a documentação que aparece no swagger
 def crud_docs(serializer_class, tag):
     # Add explicit method schemas so Swagger can render request bodies.
     examples = CRUD_EXAMPLES.get(tag, {})
@@ -323,6 +323,7 @@ def view_dtl(request):
     return Response({'success': 409, 'message': 'api'})
 
 
+# Métodos análogos são implementadas para cada modelo.
 @crud_docs(PersonSerializer, 'person')
 @api_view(['GET', 'POST', 'PUT', 'PATCH'])
 def view_person(request):
