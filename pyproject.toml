@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["backend*", "core*"]
+exclude = ["frontend*", "test_data*", "tests*"]
+
+[project]
+name = "doacao-alimentos-backend"
+version = "0.1.0"
+description = "Backend Django para a plataforma de doacao de alimentos"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "Django==6.0.3",
+    "asgiref==3.11.1",
+    "django-cors-headers==4.9.0",
+    "djangorestframework==3.16.1",
+    "django-debug-toolbar==6.2.0",
+    "drf-spectacular==0.27.0",
+    "drf-spectacular-sidecar==2026.3.1",
+    "psycopg2-binary==2.9.11",
+    "python-dotenv==1.2.2",
+    "sqlparse==0.5.5",
+    "tzdata==2025.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.0",
+    "pytest-django==4.5.2",
+    "ruff>=0.11,<1",
+    "black>=24.0,<25",
+]
+release = [
+    "python-semantic-release>=9.15,<10",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "backend.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "core/migrations",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["backend/__init__.py:__version__"]
+branch = "testing_post"
+tag_format = "v{version}"
+commit_parser = "conventional"
+build_command = ""
+allow_zero_version = true
+upload_to_pypi = false
+upload_to_release = true

@@ -1,0 +1,10 @@
+{
+  "nome": "João Silva",
+  "email": "joao@example.com",
+  "password": "senha123",
+  "cep": "01310100",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "bairro": "Centro",
+  "foto_perfil_url": "https://example.com/foto.jpg"
+}

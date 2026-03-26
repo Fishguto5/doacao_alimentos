@@ -4,6 +4,8 @@ venv/
 .vscode/
 node_modules/
 __pycache__/
+.vscode/
+doacao_alimentos_backend.egg-info/
 
 # Variáveis de ambiente (senhas do banco)
 .env
@@ -14,3 +16,7 @@ __pycache__/
 # anotações para rodar comandos como subir front, back, etc
 commands.txt
 prompts.txt
+
+# migrations precisam ser versionadas para CI/testes
+
+#configuracoes locais 

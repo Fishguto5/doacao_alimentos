@@ -32,6 +32,26 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Dependencias via pyproject.toml (recomendado)
+
+Para desenvolvimento (inclui ferramentas de qualidade):
+
+```
+pip install -e ".[dev]"
+```
+
+Para usar semantic release no backend:
+
+```
+pip install -e ".[release]"
+```
+
+Executar release em modo de teste:
+
+```
+semantic-release version --noop
+```
+
 ## Usando PostgreSQL
 
 O projeto agora aceita PostgreSQL por variáveis de ambiente, com SQLite como fallback. Isso permite começar simples e trocar de banco sem reescrever o backend.
@@ -68,6 +88,50 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Testes Automatizados (Pytest)
+
+O repositório está configurado para executar testes com `pytest` e `pytest-django` usando o arquivo `pytest.ini` na raiz do projeto.
+
+### 1. Preparar ambiente
+
+Crie e ative o ambiente virtual:
+
+```
+python -m venv .venv
+source .venv/bin/activate       # Linux
+.\.venv\Scripts\Activate.ps1    # Windows
+```
+
+### 2. Preparar banco para os testes
+
+```
+python manage.py migrate
+```
+
+### 3. Executar os testes
+
+Execute todos os testes:
+
+```
+pytest
+```
+
+Executar um arquivo específico:
+
+```
+pytest tests/tests.py
+```
+
+Também dá para executar pela janela de testes do VSCode
+
+### 4. Configurar VS Code para reconhecer os testes
+
+1. Selecione o interpretador Python do projeto (`.venv`) em **Python: Select Interpreter**.
+2. Abra o painel **Testing** e rode **Python: Discover Tests**.
+3. O VS Code usa as configurações de `.vscode/settings.json` para chamar o pytest na pasta `tests`, é lá que devem ficar seus testes.
+
+Observação: use `pytest` (sem `-c tests/pytest.ini`). O arquivo de configuração válido está na raiz (`pytest.ini`).
 
 ## Requirements:
 Python - 3.14.3+
