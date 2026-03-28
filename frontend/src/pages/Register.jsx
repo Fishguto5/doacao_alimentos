@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
+
+const UFS_BRASIL = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
 
 export default function Register() {
   const { login } = useUser()
@@ -10,10 +12,12 @@ export default function Register() {
   const [tab, setTab] = useState(initialTab)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showEstadoOptions, setShowEstadoOptions] = useState(false)
+  const estadoSelectRef = useRef(null)
 
   const [form, setForm] = useState({
     nome: '', email: '', password: '', cep: '',
-    cidade: '', estado: '', bairro: '', foto_perfil_url: '',
+    cidade: '', estado: '', bairro: '', logradouro: '', numero: '', complemento: '',
   })
 
   const [loginEmail, setLoginEmail] = useState('')
@@ -22,15 +26,41 @@ export default function Register() {
     setForm(f => ({ ...f, [field]: value }))
   }
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (estadoSelectRef.current && !estadoSelectRef.current.contains(event.target)) {
+        setShowEstadoOptions(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   async function handleRegister(e) {
     e.preventDefault()
     setError('')
+    if (!form.estado) {
+      setError('Selecione o seu estado.')
+      return
+    }
     setLoading(true)
     try {
       const payload = { ...form }
-      if (!payload.foto_perfil_url) delete payload.foto_perfil_url
       const created = await api.createUsuario(payload)
-      login({ id: created.id, nome: created.nome, email: created.email, cidade: created.cidade, estado: created.estado })
+      login({
+        id: created.id,
+        nome: created.nome,
+        email: created.email,
+        cidade: created.cidade,
+        estado: created.estado,
+        bairro: created.bairro,
+        cep: created.cep,
+        logradouro: created.logradouro,
+        numero: created.numero,
+        complemento: created.complemento,
+        foto_perfil_url: created.foto_perfil_url,
+      })
       navigate('#/')
     } catch (err) {
       setError(err.message)
@@ -50,7 +80,19 @@ export default function Register() {
         setError('Nenhum usuário encontrado com esse e-mail.')
         return
       }
-      login({ id: found.id, nome: found.nome, email: found.email, cidade: found.cidade, estado: found.estado })
+      login({
+        id: found.id,
+        nome: found.nome,
+        email: found.email,
+        cidade: found.cidade,
+        estado: found.estado,
+        bairro: found.bairro,
+        cep: found.cep,
+        logradouro: found.logradouro,
+        numero: found.numero,
+        complemento: found.complemento,
+        foto_perfil_url: found.foto_perfil_url,
+      })
       navigate('#/')
     } catch (err) {
       setError(err.message)
@@ -101,9 +143,46 @@ export default function Register() {
                 <label>Cidade *</label>
                 <input className="input" required value={form.cidade} onChange={e => updateForm('cidade', e.target.value)} placeholder="Sua cidade" />
               </div>
-              <div className="form-group form-group-sm">
+              <div className="form-group form-group-uf">
                 <label>Estado *</label>
-                <input className="input" required maxLength={2} value={form.estado} onChange={e => updateForm('estado', e.target.value.toUpperCase())} placeholder="SP" />
+                <div className={`estado-select${showEstadoOptions ? ' open' : ''}`} ref={estadoSelectRef}>
+                  <button
+                    type="button"
+                    className={`input estado-select-trigger${form.estado ? '' : ' placeholder'}`}
+                    onClick={() => setShowEstadoOptions(open => !open)}
+                    aria-haspopup="listbox"
+                    aria-expanded={showEstadoOptions}
+                  >
+                    <span>{form.estado || 'Selecione a UF'}</span>
+                  </button>
+                  {showEstadoOptions && (
+                    <div className="estado-select-menu" role="listbox" aria-label="Selecionar estado">
+                      {UFS_BRASIL.map(uf => (
+                        <button
+                          key={uf}
+                          type="button"
+                          className={`estado-option${form.estado === uf ? ' selected' : ''}`}
+                          onClick={() => {
+                            updateForm('estado', uf)
+                            setShowEstadoOptions(false)
+                          }}
+                        >
+                          {uf}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Logradouro *</label>
+                <input className="input" required value={form.logradouro} onChange={e => updateForm('logradouro', e.target.value)} placeholder="Rua, avenida, etc." />
+              </div>
+              <div className="form-group form-group-sm">
+                <label>Número</label>
+                <input className="input" value={form.numero} onChange={e => updateForm('numero', e.target.value)} placeholder="123" />
               </div>
             </div>
             <div className="form-row">
@@ -117,8 +196,8 @@ export default function Register() {
               </div>
             </div>
             <div className="form-group">
-              <label>URL da foto de perfil</label>
-              <input className="input" type="url" value={form.foto_perfil_url} onChange={e => updateForm('foto_perfil_url', e.target.value)} placeholder="https://..." />
+              <label>Complemento</label>
+              <input className="input" value={form.complemento} onChange={e => updateForm('complemento', e.target.value)} placeholder="Apartamento, bloco, referência..." />
             </div>
 
             <button className="btn-primary btn-full" type="submit" disabled={loading}>

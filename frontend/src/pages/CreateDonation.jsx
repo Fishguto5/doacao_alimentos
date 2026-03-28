@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
 
 const UNIDADES = ['kg', 'g', 'l', 'ml', 'unidade']
+const UFS_BRASIL = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
 
 export default function CreateDonation() {
   const { user } = useUser()
   const [categorias, setCategorias] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showEstadoOptions, setShowEstadoOptions] = useState(false)
+  const estadoSelectRef = useRef(null)
 
   const [form, setForm] = useState({
     titulo: '', descricao: '', imagem_desc_url: '',
@@ -28,6 +31,17 @@ export default function CreateDonation() {
     if (!user) { navigate('#/register'); return }
     api.getCategorias().then(setCategorias).catch(() => {})
   }, [user])
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (estadoSelectRef.current && !estadoSelectRef.current.contains(event.target)) {
+        setShowEstadoOptions(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   function updateForm(field, value) {
     setForm(f => ({ ...f, [field]: value }))
@@ -60,6 +74,10 @@ export default function CreateDonation() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    if (!form.estado) {
+      setError('Selecione o estado da doação.')
+      return
+    }
     setLoading(true)
     try {
       const payload = {
@@ -147,9 +165,36 @@ export default function CreateDonation() {
               <label>Cidade *</label>
               <input className="input" required value={form.cidade} onChange={e => updateForm('cidade', e.target.value)} />
             </div>
-            <div className="form-group form-group-sm">
+            <div className="form-group form-group-uf">
               <label>Estado *</label>
-              <input className="input" required maxLength={2} value={form.estado} onChange={e => updateForm('estado', e.target.value.toUpperCase())} placeholder="SP" />
+              <div className={`estado-select${showEstadoOptions ? ' open' : ''}`} ref={estadoSelectRef}>
+                <button
+                  type="button"
+                  className={`input estado-select-trigger${form.estado ? '' : ' placeholder'}`}
+                  onClick={() => setShowEstadoOptions(open => !open)}
+                  aria-haspopup="listbox"
+                  aria-expanded={showEstadoOptions}
+                >
+                  <span>{form.estado || 'Selecione a UF'}</span>
+                </button>
+                {showEstadoOptions && (
+                  <div className="estado-select-menu" role="listbox" aria-label="Selecionar estado">
+                    {UFS_BRASIL.map(uf => (
+                      <button
+                        key={uf}
+                        type="button"
+                        className={`estado-option${form.estado === uf ? ' selected' : ''}`}
+                        onClick={() => {
+                          updateForm('estado', uf)
+                          setShowEstadoOptions(false)
+                        }}
+                      >
+                        {uf}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="form-row">

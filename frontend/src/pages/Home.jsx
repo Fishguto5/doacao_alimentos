@@ -81,7 +81,7 @@ export default function Home() {
             {cidades.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <p className="results-count">{filtradas.length} doação{filtradas.length !== 1 ? 'ões' : ''} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
+        <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
       </section>
 
       {loading && <div className="loading">Carregando doações...</div>}

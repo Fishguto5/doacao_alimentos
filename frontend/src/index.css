@@ -271,6 +271,7 @@ select.input { appearance: auto; }
 .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
 .form-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
 .form-group-sm { flex: 0.4; min-width: 70px; }
+.form-group-uf { min-width: 220px; }
 .form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
 .form-row .form-group { min-width: 120px; }
 
@@ -281,6 +282,54 @@ select.input { appearance: auto; }
 .section-header-row { display: flex; justify-content: space-between; align-items: center; }
 .alimento-form-row { border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .categoria-add { padding-top: 8px; }
+.estado-select {
+  position: relative;
+}
+.estado-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+}
+.estado-select-trigger::after {
+  content: '▾';
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.estado-select-trigger.placeholder {
+  color: var(--gray-600);
+}
+.estado-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 205px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+}
+.estado-option {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  text-align: left;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+.estado-option:hover {
+  background: var(--green-50);
+}
+.estado-option.selected {
+  background: var(--green-800);
+  color: var(--white);
+}
 
 /* ── Auth card ──────────────────────────────── */
 .auth-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; width: 100%; max-width: 460px; margin-top: 40px; }
