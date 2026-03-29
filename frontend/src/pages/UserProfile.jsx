@@ -101,7 +101,9 @@ export default function UserProfile() {
     try {
       await api.updateNotificacao({ id: notifId, status: 'lida' })
       setNotificacoes(list => list.map(n => n.id === notifId ? { ...n, status: 'lida' } : n))
-    } catch {}
+    } catch {
+      // Ignora falhas de atualização para não bloquear a navegação do usuário.
+    }
   }
 
   if (!user) return null

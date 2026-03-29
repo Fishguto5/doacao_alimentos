@@ -63,7 +63,7 @@ target-version = ["py312"]
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["backend/__init__.py:__version__"]
-branch = "testing_post"
+branch = "main"
 tag_format = "v{version}"
 commit_parser = "conventional"
 build_command = ""
