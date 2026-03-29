@@ -60,7 +60,10 @@ MIDDLEWARE = [
 # Configure Spectacular settings
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Site de Doação API',
-    'DESCRIPTION': 'API para administração de doações de alimentos, como solicitações, notificações e avaliações.',
+    'DESCRIPTION': (
+        'API para administração de doações de alimentos, '
+        'como solicitações, notificações e avaliações.'
+    ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # Hide auth methods in docs while the API has no auth configured.

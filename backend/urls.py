@@ -15,12 +15,29 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-import debug_toolbar
 from django.contrib import admin
 from django.urls import include, path
-from core.views import *
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+from core.views import (
+    view_alimento,
+    view_alimento_detail,
+    view_avaliacao,
+    view_avaliacao_detail,
+    view_categoria,
+    view_categoria_detail,
+    view_doacao,
+    view_doacao_detail,
+    view_notificacao,
+    view_notificacao_detail,
+    view_person,
+    view_person_detail,
+    view_solicitacao_doacao,
+    view_solicitacao_doacao_detail,
+    view_usuario,
+    view_usuario_detail,
+)
 from . import views
-from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,7 +51,11 @@ urlpatterns = [
     path('doacao/', view_doacao, name='doacao'),
     path('doacao/<int:id>/', view_doacao_detail, name='doacao_detail'),
     path('solicitacao-doacao/', view_solicitacao_doacao, name='solicitacao_doacao'),
-    path('solicitacao-doacao/<int:id>/', view_solicitacao_doacao_detail, name='solicitacao_doacao_detail'),
+    path(
+        'solicitacao-doacao/<int:id>/',
+        view_solicitacao_doacao_detail,
+        name='solicitacao_doacao_detail',
+    ),
     path('alimento/', view_alimento, name='alimento'),
     path('alimento/<int:id>/', view_alimento_detail, name='alimento_detail'),
     path('notificacao/', view_notificacao, name='notificacao'),
@@ -44,5 +65,5 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # url para usar o swagger, que é uma interface gráfica para explorar a API
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
-    path('', views.test),      
+    path('', views.test),
 ]

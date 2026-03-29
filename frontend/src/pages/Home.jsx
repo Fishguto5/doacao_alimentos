@@ -14,7 +14,6 @@ export default function Home() {
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
 
   useEffect(() => {
-    setLoading(true)
     api.getDoacoes()
       .then(data => { setDoacoes(data); setLoading(false) })
       .catch(e => { setError(e.message); setLoading(false) })
