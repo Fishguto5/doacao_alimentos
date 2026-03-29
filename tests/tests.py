@@ -14,7 +14,6 @@ from core.models import (
 	Usuario,
 )
 
-
 RESOURCE_MODEL_MAP = {
 	"person": Person,
 	"usuario": Usuario,

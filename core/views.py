@@ -1,24 +1,33 @@
-from django.shortcuts import render
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from drf_spectacular.utils import (
-    extend_schema,
-    inline_serializer,
     OpenApiExample,
     OpenApiResponse,
+    extend_schema,
+    inline_serializer,
 )
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 from core.models import (
-    Person, Usuario, Categoria, Doacao, 
-    SolicitacaoDoacao, Alimento, Notificacao, Avaliacao
+    Alimento,
+    Avaliacao,
+    Categoria,
+    Doacao,
+    Notificacao,
+    Person,
+    SolicitacaoDoacao,
+    Usuario,
 )
 from core.serializers import (
-    PersonSerializer, UsuarioSerializer, CategoriaSerializer,
-    DoacaoSerializer, SolicitacaoDoacaoSerializer, AlimentoSerializer,
-    NotificacaoSerializer, AvaliacaoSerializer
+    AlimentoSerializer,
+    AvaliacaoSerializer,
+    CategoriaSerializer,
+    DoacaoSerializer,
+    NotificacaoSerializer,
+    PersonSerializer,
+    SolicitacaoDoacaoSerializer,
+    UsuarioSerializer,
 )
-from rest_framework import status
-
 
 DELETE_ID_SERIALIZER = inline_serializer(
     name='DeleteByIdRequest',

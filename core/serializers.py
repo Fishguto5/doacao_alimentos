@@ -1,7 +1,14 @@
 from rest_framework import serializers
+
 from core.models import (
-    Person, Usuario, Categoria, Doacao, 
-    SolicitacaoDoacao, Alimento, Notificacao, Avaliacao
+    Alimento,
+    Avaliacao,
+    Categoria,
+    Doacao,
+    Notificacao,
+    Person,
+    SolicitacaoDoacao,
+    Usuario,
 )
 
 # serializer irá transformar os dados de uma "forma" para outra. por exemplo, de um modelo de banco para um json

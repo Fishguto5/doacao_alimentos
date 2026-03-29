@@ -37,6 +37,7 @@ from core.views import (
     view_usuario,
     view_usuario_detail,
 )
+
 from . import views
 
 urlpatterns = [
