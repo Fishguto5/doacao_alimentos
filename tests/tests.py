@@ -4,297 +4,299 @@ import pytest
 from rest_framework.test import APIClient
 
 from core.models import (
-	Alimento,
-	Avaliacao,
-	Categoria,
-	Doacao,
-	Notificacao,
-	Person,
-	SolicitacaoDoacao,
-	Usuario,
+    Alimento,
+    Avaliacao,
+    Categoria,
+    Doacao,
+    Notificacao,
+    Person,
+    SolicitacaoDoacao,
+    Usuario,
 )
 
 RESOURCE_MODEL_MAP = {
-	"person": Person,
-	"usuario": Usuario,
-	"categoria": Categoria,
-	"doacao": Doacao,
-	"solicitacao-doacao": SolicitacaoDoacao,
-	"alimento": Alimento,
-	"notificacao": Notificacao,
-	"avaliacao": Avaliacao,
+    "person": Person,
+    "usuario": Usuario,
+    "categoria": Categoria,
+    "doacao": Doacao,
+    "solicitacao-doacao": SolicitacaoDoacao,
+    "alimento": Alimento,
+    "notificacao": Notificacao,
+    "avaliacao": Avaliacao,
 }
 
 
 @pytest.fixture
 def api_client():
-	return APIClient()
+    return APIClient()
 
 
 def _create_usuario(seed: str, prefix: str) -> Usuario:
-	return Usuario.objects.create(
-		nome=f"{prefix} {seed}",
-		email=f"{prefix.lower()}_{seed}@example.com",
-		password="senha12345",
-		cep="13000000",
-		cidade="Campinas",
-		estado="SP",
-		bairro="Centro",
-		foto_perfil_url="https://example.com/perfil.jpg",
-	)
+    return Usuario.objects.create(
+        nome=f"{prefix} {seed}",
+        email=f"{prefix.lower()}_{seed}@example.com",
+        password="senha12345",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        foto_perfil_url="https://example.com/perfil.jpg",
+    )
 
 
 def _create_dependencies(resource: str, seed: str) -> dict:
-	dependencies = {}
+    dependencies = {}
 
-	if resource in {"doacao", "solicitacao-doacao", "alimento", "notificacao", "avaliacao"}:
-		dependencies["doador"] = _create_usuario(seed, "Doador")
-		dependencies["receptor"] = _create_usuario(seed, "Receptor")
+    if resource in {"doacao", "solicitacao-doacao", "alimento", "notificacao", "avaliacao"}:
+        dependencies["doador"] = _create_usuario(seed, "Doador")
+        dependencies["receptor"] = _create_usuario(seed, "Receptor")
 
-	if resource in {"solicitacao-doacao", "alimento", "notificacao", "avaliacao"}:
-		dependencies["categoria"] = Categoria.objects.create(nome=f"Categoria {seed}")
-		dependencies["doacao"] = Doacao.objects.create(
-			doador=dependencies["doador"],
-			receptor=dependencies["receptor"],
-			titulo=f"Doacao Base {seed}",
-			descricao="Doacao criada para testes",
-			imagem_desc_url="https://example.com/doacao.jpg",
-			status="disponivel",
-			cep="13000000",
-			cidade="Campinas",
-			estado="SP",
-			bairro="Centro",
-			estimativa_peso="8.00",
-		)
+    if resource in {"solicitacao-doacao", "alimento", "notificacao", "avaliacao"}:
+        dependencies["categoria"] = Categoria.objects.create(nome=f"Categoria {seed}")
+        dependencies["doacao"] = Doacao.objects.create(
+            doador=dependencies["doador"],
+            receptor=dependencies["receptor"],
+            titulo=f"Doacao Base {seed}",
+            descricao="Doacao criada para testes",
+            imagem_desc_url="https://example.com/doacao.jpg",
+            status="disponivel",
+            cep="13000000",
+            cidade="Campinas",
+            estado="SP",
+            bairro="Centro",
+            estimativa_peso="8.00",
+        )
 
-	return dependencies
+    return dependencies
 
 
 def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, dict, dict]:
-	if resource == "person":
-		create_payload = {
-			"name": f"Pessoa {seed}",
-			"age": 25,
-			"city": "Campinas",
-		}
-		put_payload = {
-			"name": f"Pessoa Atualizada {seed}",
-			"age": 26,
-			"city": "Valinhos",
-		}
-		patch_payload = {"city": "Sumare"}
-		return create_payload, put_payload, patch_payload
+    if resource == "person":
+        create_payload = {
+            "name": f"Pessoa {seed}",
+            "age": 25,
+            "city": "Campinas",
+        }
+        put_payload = {
+            "name": f"Pessoa Atualizada {seed}",
+            "age": 26,
+            "city": "Valinhos",
+        }
+        patch_payload = {"city": "Sumare"}
+        return create_payload, put_payload, patch_payload
 
-	if resource == "usuario":
-		create_payload = {
-			"nome": f"Usuario {seed}",
-			"email": f"usuario_{seed}@example.com",
-			"password": "senha12345",
-			"cep": "13000000",
-			"cidade": "Campinas",
-			"estado": "SP",
-			"bairro": "Centro",
-			"foto_perfil_url": "https://example.com/usuario.jpg",
-		}
-		put_payload = {
-			"nome": f"Usuario Atualizado {seed}",
-			"email": f"usuario_atualizado_{seed}@example.com",
-			"password": "senha67890",
-			"cep": "13100000",
-			"cidade": "Valinhos",
-			"estado": "SP",
-			"bairro": "Jardim",
-			"foto_perfil_url": "https://example.com/usuario2.jpg",
-		}
-		patch_payload = {"bairro": "Centro Novo"}
-		return create_payload, put_payload, patch_payload
+    if resource == "usuario":
+        create_payload = {
+            "nome": f"Usuario {seed}",
+            "email": f"usuario_{seed}@example.com",
+            "password": "senha12345",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "foto_perfil_url": "https://example.com/usuario.jpg",
+        }
+        put_payload = {
+            "nome": f"Usuario Atualizado {seed}",
+            "email": f"usuario_atualizado_{seed}@example.com",
+            "password": "senha67890",
+            "cep": "13100000",
+            "cidade": "Valinhos",
+            "estado": "SP",
+            "bairro": "Jardim",
+            "foto_perfil_url": "https://example.com/usuario2.jpg",
+        }
+        patch_payload = {"bairro": "Centro Novo"}
+        return create_payload, put_payload, patch_payload
 
-	if resource == "categoria":
-		create_payload = {"nome": f"Categoria API {seed}"}
-		put_payload = {"nome": f"Categoria Atualizada {seed}"}
-		patch_payload = {"nome": f"Categoria Parcial {seed}"}
-		return create_payload, put_payload, patch_payload
+    if resource == "categoria":
+        create_payload = {"nome": f"Categoria API {seed}"}
+        put_payload = {"nome": f"Categoria Atualizada {seed}"}
+        patch_payload = {"nome": f"Categoria Parcial {seed}"}
+        return create_payload, put_payload, patch_payload
 
-	if resource == "doacao":
-		create_payload = {
-			"doador": dependencies["doador"].id,
-			"receptor": dependencies["receptor"].id,
-			"titulo": f"Doacao {seed}",
-			"descricao": "Descricao inicial",
-			"imagem_desc_url": "https://example.com/doacao1.jpg",
-			"status": "disponivel",
-			"cep": "13000000",
-			"cidade": "Campinas",
-			"estado": "SP",
-			"bairro": "Centro",
-			"estimativa_peso": "10.50",
-		}
-		put_payload = {
-			"doador": dependencies["doador"].id,
-			"receptor": dependencies["receptor"].id,
-			"titulo": f"Doacao Atualizada {seed}",
-			"descricao": "Descricao atualizada",
-			"imagem_desc_url": "https://example.com/doacao2.jpg",
-			"status": "reservada",
-			"cep": "13100000",
-			"cidade": "Valinhos",
-			"estado": "SP",
-			"bairro": "Jardim",
-			"estimativa_peso": "11.00",
-		}
-		patch_payload = {"status": "concluida"}
-		return create_payload, put_payload, patch_payload
+    if resource == "doacao":
+        create_payload = {
+            "doador": dependencies["doador"].id,
+            "receptor": dependencies["receptor"].id,
+            "titulo": f"Doacao {seed}",
+            "descricao": "Descricao inicial",
+            "imagem_desc_url": "https://example.com/doacao1.jpg",
+            "status": "disponivel",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "estimativa_peso": "10.50",
+        }
+        put_payload = {
+            "doador": dependencies["doador"].id,
+            "receptor": dependencies["receptor"].id,
+            "titulo": f"Doacao Atualizada {seed}",
+            "descricao": "Descricao atualizada",
+            "imagem_desc_url": "https://example.com/doacao2.jpg",
+            "status": "reservada",
+            "cep": "13100000",
+            "cidade": "Valinhos",
+            "estado": "SP",
+            "bairro": "Jardim",
+            "estimativa_peso": "11.00",
+        }
+        patch_payload = {"status": "concluida"}
+        return create_payload, put_payload, patch_payload
 
-	if resource == "solicitacao-doacao":
-		create_payload = {
-			"doacao": dependencies["doacao"].id,
-			"solicitante": dependencies["receptor"].id,
-			"status": "pendente",
-			"mensagem": f"Solicitacao inicial {seed}",
-		}
-		put_payload = {
-			"doacao": dependencies["doacao"].id,
-			"solicitante": dependencies["receptor"].id,
-			"status": "aceita",
-			"mensagem": f"Solicitacao atualizada {seed}",
-		}
-		patch_payload = {"status": "recusada"}
-		return create_payload, put_payload, patch_payload
+    if resource == "solicitacao-doacao":
+        create_payload = {
+            "doacao": dependencies["doacao"].id,
+            "solicitante": dependencies["receptor"].id,
+            "status": "pendente",
+            "mensagem": f"Solicitacao inicial {seed}",
+        }
+        put_payload = {
+            "doacao": dependencies["doacao"].id,
+            "solicitante": dependencies["receptor"].id,
+            "status": "aceita",
+            "mensagem": f"Solicitacao atualizada {seed}",
+        }
+        patch_payload = {"status": "recusada"}
+        return create_payload, put_payload, patch_payload
 
-	if resource == "alimento":
-		create_payload = {
-			"categoria": dependencies["categoria"].id,
-			"doacao": dependencies["doacao"].id,
-			"nome": f"Arroz {seed}",
-			"data_validade": "2026-12-31",
-			"quantidade": "5.00",
-			"unidade": "kg",
-		}
-		put_payload = {
-			"categoria": dependencies["categoria"].id,
-			"doacao": dependencies["doacao"].id,
-			"nome": f"Arroz Integral {seed}",
-			"data_validade": "2027-01-31",
-			"quantidade": "6.00",
-			"unidade": "kg",
-		}
-		patch_payload = {"quantidade": "3.00"}
-		return create_payload, put_payload, patch_payload
+    if resource == "alimento":
+        create_payload = {
+            "categoria": dependencies["categoria"].id,
+            "doacao": dependencies["doacao"].id,
+            "nome": f"Arroz {seed}",
+            "data_validade": "2026-12-31",
+            "quantidade": "5.00",
+            "unidade": "kg",
+        }
+        put_payload = {
+            "categoria": dependencies["categoria"].id,
+            "doacao": dependencies["doacao"].id,
+            "nome": f"Arroz Integral {seed}",
+            "data_validade": "2027-01-31",
+            "quantidade": "6.00",
+            "unidade": "kg",
+        }
+        patch_payload = {"quantidade": "3.00"}
+        return create_payload, put_payload, patch_payload
 
-	if resource == "notificacao":
-		create_payload = {
-			"usuario": dependencies["receptor"].id,
-			"doacao": dependencies["doacao"].id,
-			"mensagem": f"Notificacao inicial {seed}",
-			"status": "pendente",
-		}
-		put_payload = {
-			"usuario": dependencies["receptor"].id,
-			"doacao": dependencies["doacao"].id,
-			"mensagem": f"Notificacao atualizada {seed}",
-			"status": "lida",
-		}
-		patch_payload = {"status": "lida"}
-		return create_payload, put_payload, patch_payload
+    if resource == "notificacao":
+        create_payload = {
+            "usuario": dependencies["receptor"].id,
+            "doacao": dependencies["doacao"].id,
+            "mensagem": f"Notificacao inicial {seed}",
+            "status": "pendente",
+        }
+        put_payload = {
+            "usuario": dependencies["receptor"].id,
+            "doacao": dependencies["doacao"].id,
+            "mensagem": f"Notificacao atualizada {seed}",
+            "status": "lida",
+        }
+        patch_payload = {"status": "lida"}
+        return create_payload, put_payload, patch_payload
 
-	if resource == "avaliacao":
-		create_payload = {
-			"doacao": dependencies["doacao"].id,
-			"avaliador": dependencies["doador"].id,
-			"avaliado": dependencies["receptor"].id,
-			"nota": 4,
-			"comentario": f"Avaliacao inicial {seed}",
-		}
-		put_payload = {
-			"doacao": dependencies["doacao"].id,
-			"avaliador": dependencies["doador"].id,
-			"avaliado": dependencies["receptor"].id,
-			"nota": 5,
-			"comentario": f"Avaliacao atualizada {seed}",
-		}
-		patch_payload = {"nota": 3}
-		return create_payload, put_payload, patch_payload
+    if resource == "avaliacao":
+        create_payload = {
+            "doacao": dependencies["doacao"].id,
+            "avaliador": dependencies["doador"].id,
+            "avaliado": dependencies["receptor"].id,
+            "nota": 4,
+            "comentario": f"Avaliacao inicial {seed}",
+        }
+        put_payload = {
+            "doacao": dependencies["doacao"].id,
+            "avaliador": dependencies["doador"].id,
+            "avaliado": dependencies["receptor"].id,
+            "nota": 5,
+            "comentario": f"Avaliacao atualizada {seed}",
+        }
+        patch_payload = {"nota": 3}
+        return create_payload, put_payload, patch_payload
 
-	raise ValueError(f"Recurso nao suportado: {resource}")
+    raise ValueError(f"Recurso nao suportado: {resource}")
 
 
 def _assert_put_field(resource: str, response_data: dict, put_payload: dict) -> None:
-	key_map = {
-		"person": "name",
-		"usuario": "nome",
-		"categoria": "nome",
-		"doacao": "titulo",
-		"solicitacao-doacao": "status",
-		"alimento": "nome",
-		"notificacao": "mensagem",
-		"avaliacao": "nota",
-	}
-	field = key_map[resource]
-	assert response_data[field] == put_payload[field]
+    key_map = {
+        "person": "name",
+        "usuario": "nome",
+        "categoria": "nome",
+        "doacao": "titulo",
+        "solicitacao-doacao": "status",
+        "alimento": "nome",
+        "notificacao": "mensagem",
+        "avaliacao": "nota",
+    }
+    field = key_map[resource]
+    assert response_data[field] == put_payload[field]
 
 
 def _assert_patch_field(resource: str, response_data: dict, patch_payload: dict) -> None:
-	field = next(iter(patch_payload.keys()))
-	expected = patch_payload[field]
-	if field == "quantidade":
-		expected = "3.00"
-	assert response_data[field] == expected
+    field = next(iter(patch_payload.keys()))
+    expected = patch_payload[field]
+    if field == "quantidade":
+        expected = "3.00"
+    assert response_data[field] == expected
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-	"resource",
-	[
-		"person",
-		"usuario",
-		"categoria",
-		"doacao",
-		"solicitacao-doacao",
-		"alimento",
-		"notificacao",
-		"avaliacao",
-	],
+    "resource",
+    [
+        "person",
+        "usuario",
+        "categoria",
+        "doacao",
+        "solicitacao-doacao",
+        "alimento",
+        "notificacao",
+        "avaliacao",
+    ],
 )
 def test_resource_crud_full_cycle(api_client, resource):
-	# Setup
-	seed = uuid.uuid4().hex[:8]
-	dependencies = _create_dependencies(resource, seed)
-	create_payload, put_payload_no_id, patch_payload_no_id = _payloads_for(resource, dependencies, seed)
-	list_url = f"/{resource}/"
+    # Setup
+    seed = uuid.uuid4().hex[:8]
+    dependencies = _create_dependencies(resource, seed)
+    create_payload, put_payload_no_id, patch_payload_no_id = _payloads_for(
+        resource, dependencies, seed
+    )
+    list_url = f"/{resource}/"
 
-	# Run - GET collection
-	list_response = api_client.get(list_url, format="json")
-	assert list_response.status_code == 200
-	assert isinstance(list_response.data["data"], list)
+    # Run - GET collection
+    list_response = api_client.get(list_url, format="json")
+    assert list_response.status_code == 200
+    assert isinstance(list_response.data["data"], list)
 
-	# Run - POST create
-	post_response = api_client.post(list_url, data=create_payload, format="json")
-	assert post_response.status_code == 201
-	created_id = post_response.data["data"]["id"]
-	model_class = RESOURCE_MODEL_MAP[resource]
-	assert model_class.objects.filter(pk=created_id).exists()
+    # Run - POST create
+    post_response = api_client.post(list_url, data=create_payload, format="json")
+    assert post_response.status_code == 201
+    created_id = post_response.data["data"]["id"]
+    model_class = RESOURCE_MODEL_MAP[resource]
+    assert model_class.objects.filter(pk=created_id).exists()
 
-	# Run - GET detail
-	detail_url = f"/{resource}/{created_id}/"
-	detail_response = api_client.get(detail_url, format="json")
-	assert detail_response.status_code == 200
-	assert detail_response.data["data"]["id"] == created_id
+    # Run - GET detail
+    detail_url = f"/{resource}/{created_id}/"
+    detail_response = api_client.get(detail_url, format="json")
+    assert detail_response.status_code == 200
+    assert detail_response.data["data"]["id"] == created_id
 
-	# Run - PUT full update
-	put_payload = {"id": created_id, **put_payload_no_id}
-	put_response = api_client.put(list_url, data=put_payload, format="json")
-	assert put_response.status_code == 200
-	_assert_put_field(resource, put_response.data["data"], put_payload_no_id)
+    # Run - PUT full update
+    put_payload = {"id": created_id, **put_payload_no_id}
+    put_response = api_client.put(list_url, data=put_payload, format="json")
+    assert put_response.status_code == 200
+    _assert_put_field(resource, put_response.data["data"], put_payload_no_id)
 
-	# Run - PATCH partial update
-	patch_payload = {"id": created_id, **patch_payload_no_id}
-	patch_response = api_client.patch(list_url, data=patch_payload, format="json")
-	assert patch_response.status_code == 200
-	_assert_patch_field(resource, patch_response.data["data"], patch_payload_no_id)
+    # Run - PATCH partial update
+    patch_payload = {"id": created_id, **patch_payload_no_id}
+    patch_response = api_client.patch(list_url, data=patch_payload, format="json")
+    assert patch_response.status_code == 200
+    _assert_patch_field(resource, patch_response.data["data"], patch_payload_no_id)
 
-	# Run - DELETE
-	delete_response = api_client.delete(detail_url, format="json")
-	assert delete_response.status_code == 204
+    # Run - DELETE
+    delete_response = api_client.delete(detail_url, format="json")
+    assert delete_response.status_code == 204
 
-	# Teardown assertion
-	assert not model_class.objects.filter(pk=created_id).exists()
+    # Teardown assertion
+    assert not model_class.objects.filter(pk=created_id).exists()

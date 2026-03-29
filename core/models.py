@@ -3,6 +3,7 @@ from django.db import models
 
 # classe teste para testar POST, PUT, GET etc
 
+
 class Person(models.Model):
     name = models.CharField(max_length=100)
     age = models.IntegerField(default=18)
@@ -11,32 +12,33 @@ class Person(models.Model):
     def __str__(self):
         return self.name
 
+
 class DoacaoStatus(models.TextChoices):
-    DISPONIVEL = 'disponivel', 'Disponivel'
-    RESERVADA = 'reservada', 'Reservada'
-    CONCLUIDA = 'concluida', 'Concluida'
-    EXPIRADA = 'expirada', 'Expirada'
-    CANCELADA = 'cancelada', 'Cancelada'
+    DISPONIVEL = "disponivel", "Disponivel"
+    RESERVADA = "reservada", "Reservada"
+    CONCLUIDA = "concluida", "Concluida"
+    EXPIRADA = "expirada", "Expirada"
+    CANCELADA = "cancelada", "Cancelada"
 
 
 class SolicitacaoStatus(models.TextChoices):
-    PENDENTE = 'pendente', 'Pendente'
-    ACEITA = 'aceita', 'Aceita'
-    RECUSADA = 'recusada', 'Recusada'
-    CANCELADA = 'cancelada', 'Cancelada'
+    PENDENTE = "pendente", "Pendente"
+    ACEITA = "aceita", "Aceita"
+    RECUSADA = "recusada", "Recusada"
+    CANCELADA = "cancelada", "Cancelada"
 
 
 class NotificacaoStatus(models.TextChoices):
-    PENDENTE = 'pendente', 'Pendente'
-    LIDA = 'lida', 'Lida'
+    PENDENTE = "pendente", "Pendente"
+    LIDA = "lida", "Lida"
 
 
 class UnidadeMedida(models.TextChoices):
-    UNIDADE = 'unidade', 'Unidade'
-    KG = 'kg', 'Kg'
-    G = 'g', 'G'
-    L = 'l', 'L'
-    ML = 'ml', 'Ml'
+    UNIDADE = "unidade", "Unidade"
+    KG = "kg", "Kg"
+    G = "g", "G"
+    L = "l", "L"
+    ML = "ml", "Ml"
 
 
 class Usuario(models.Model):
@@ -57,7 +59,7 @@ class Usuario(models.Model):
     # Ordenar por cidade, estado para facilitar buscas por localização
     class Meta:
         indexes = [
-            models.Index(fields=['cidade', 'estado']),
+            models.Index(fields=["cidade", "estado"]),
         ]
 
     def __str__(self):
@@ -68,7 +70,7 @@ class Categoria(models.Model):
     nome = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ['nome']
+        ordering = ["nome"]
 
     def __str__(self):
         return self.nome
@@ -76,25 +78,25 @@ class Categoria(models.Model):
 
 class Doacao(models.Model):
     # Facilita buscas por doador através de algo como:
-    # usuario.doacoes_criadas.all() 
+    # usuario.doacoes_criadas.all()
     # O comportamento de models.SET_NULL pode causar situações de checagem se uma doação
     # tem ou não um doador associado, mas é importante para manter o histórico de doações
     # models.CASCADE deletaria tudo.
     doador = models.ForeignKey(
-        'Usuario',
+        "Usuario",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='doacoes_criadas',
+        related_name="doacoes_criadas",
     )
     # Facilita buscas por receptor através de algo como:
-    # usuario.doacoes_recebidas.all() 
+    # usuario.doacoes_recebidas.all()
     receptor = models.ForeignKey(
-        'Usuario',
+        "Usuario",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='doacoes_recebidas',
+        related_name="doacoes_recebidas",
     )
     titulo = models.CharField(max_length=100)
     descricao = models.TextField()
@@ -126,13 +128,13 @@ class Doacao(models.Model):
         indexes = [
             # Para ajudar com buscas do tipo:
             # Doacao.objects.filter(status='disponivel').order_by('data_publicacao')
-            models.Index(fields=['status', 'data_publicacao']),
+            models.Index(fields=["status", "data_publicacao"]),
             # Para ajudar com buscas por localização e status, como:
             # Doacao.objects.filter(cidade='São Paulo', estado='SP', status='disponivel')
-            models.Index(fields=['cidade', 'estado', 'status']),
+            models.Index(fields=["cidade", "estado", "status"]),
             # Para ajudar com buscas por doador e status, como:
             # Doacao.objects.filter(doador=usuario, status='disponivel')
-            models.Index(fields=['doador', 'status']),
+            models.Index(fields=["doador", "status"]),
         ]
 
     def __str__(self):
@@ -141,16 +143,16 @@ class Doacao(models.Model):
 
 class SolicitacaoDoacao(models.Model):
     doacao = models.ForeignKey(
-        'Doacao',
+        "Doacao",
         on_delete=models.CASCADE,
-        related_name='solicitacoes',
+        related_name="solicitacoes",
     )
     solicitante = models.ForeignKey(
-        'Usuario',
+        "Usuario",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='solicitacoes_enviadas',
+        related_name="solicitacoes_enviadas",
     )
     status = models.CharField(
         max_length=20,
@@ -165,29 +167,29 @@ class SolicitacaoDoacao(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['doacao', 'solicitante'],
-                name='unique_solicitacao_por_usuario_e_doacao',
+                fields=["doacao", "solicitante"],
+                name="unique_solicitacao_por_usuario_e_doacao",
             ),
         ]
         indexes = [
-            models.Index(fields=['doacao', 'status']),
-            models.Index(fields=['solicitante', 'status']),
+            models.Index(fields=["doacao", "status"]),
+            models.Index(fields=["solicitante", "status"]),
         ]
 
     def __str__(self):
-        return f'{self.solicitante} -> {self.doacao}'
+        return f"{self.solicitante} -> {self.doacao}"
 
 
 class Alimento(models.Model):
     categoria = models.ForeignKey(
-        'Categoria',
+        "Categoria",
         on_delete=models.PROTECT,
-        related_name='alimentos',
+        related_name="alimentos",
     )
     doacao = models.ForeignKey(
-        'Doacao',
+        "Doacao",
         on_delete=models.CASCADE,
-        related_name='alimentos',
+        related_name="alimentos",
     )
     nome = models.CharField(max_length=100)
     data_validade = models.DateField(null=True, blank=True)
@@ -200,8 +202,8 @@ class Alimento(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['doacao']),
-            models.Index(fields=['categoria']),
+            models.Index(fields=["doacao"]),
+            models.Index(fields=["categoria"]),
         ]
 
     def __str__(self):
@@ -210,16 +212,16 @@ class Alimento(models.Model):
 
 class Notificacao(models.Model):
     usuario = models.ForeignKey(
-        'Usuario',
+        "Usuario",
         on_delete=models.CASCADE,
-        related_name='notificacoes',
+        related_name="notificacoes",
     )
     doacao = models.ForeignKey(
-        'Doacao',
+        "Doacao",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='notificacoes',
+        related_name="notificacoes",
     )
     mensagem = models.TextField()
     status = models.CharField(
@@ -233,28 +235,28 @@ class Notificacao(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['usuario', 'status', 'created_at']),
+            models.Index(fields=["usuario", "status", "created_at"]),
         ]
 
     def __str__(self):
-        return f'Notificacao para {self.usuario}'
+        return f"Notificacao para {self.usuario}"
 
 
 class Avaliacao(models.Model):
     doacao = models.ForeignKey(
-        'Doacao',
+        "Doacao",
         on_delete=models.CASCADE,
-        related_name='avaliacoes',
+        related_name="avaliacoes",
     )
     avaliador = models.ForeignKey(
-        'Usuario',
+        "Usuario",
         on_delete=models.CASCADE,
-        related_name='avaliacoes_feitas',
+        related_name="avaliacoes_feitas",
     )
     avaliado = models.ForeignKey(
-        'Usuario',
+        "Usuario",
         on_delete=models.CASCADE,
-        related_name='avaliacoes_recebidas',
+        related_name="avaliacoes_recebidas",
     )
     nota = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
@@ -266,24 +268,24 @@ class Avaliacao(models.Model):
         constraints = [
             # Um avaliador só pode avaliar uma doação uma vez, para evitar avaliações duplicadas
             models.UniqueConstraint(
-                fields=['doacao', 'avaliador'],
-                name='unique_avaliacao_por_doacao_e_avaliador',
+                fields=["doacao", "avaliador"],
+                name="unique_avaliacao_por_doacao_e_avaliador",
             ),
             # O avaliador não pode avaliar a si mesmo
             models.CheckConstraint(
-                condition=~models.Q(avaliador=models.F('avaliado')),
-                name='avaliador_diferente_de_avaliado',
+                condition=~models.Q(avaliador=models.F("avaliado")),
+                name="avaliador_diferente_de_avaliado",
             ),
             # Uma avaliação recebe nota entre 1 e 5
             models.CheckConstraint(
                 condition=models.Q(nota__gte=1) & models.Q(nota__lte=5),
-                name='nota_entre_1_e_5',
+                name="nota_entre_1_e_5",
             ),
         ]
         indexes = [
-            models.Index(fields=['avaliado']),
-            models.Index(fields=['doacao']),
+            models.Index(fields=["avaliado"]),
+            models.Index(fields=["doacao"]),
         ]
 
     def __str__(self):
-        return f'{self.avaliador} -> {self.avaliado} ({self.nota})'
+        return f"{self.avaliador} -> {self.avaliado} ({self.nota})"
