@@ -94,6 +94,7 @@ def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, d
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua A",
             "foto_perfil_url": "https://example.com/usuario.jpg",
         }
         put_payload = {
@@ -104,6 +105,7 @@ def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, d
             "cidade": "Valinhos",
             "estado": "SP",
             "bairro": "Jardim",
+            "logradouro": "Rua B",
             "foto_perfil_url": "https://example.com/usuario2.jpg",
         }
         patch_payload = {"bairro": "Centro Novo"}
