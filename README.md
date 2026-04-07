@@ -73,6 +73,18 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 ```
 
+Se houver um problema de abrir o banco de dados você pode rodar os seguintes comandos:
+
+Para verificar se o postgresql está sendo executado dentro do seu sistema.
+```
+sudo systemctl status postgresql
+```
+
+Caso ele esteja desabilitado você poderá executar:
+```
+sudo systemctl start postgresql
+```
+
 Comandos para aplicar no banco PostgreSQL:
 
 ```

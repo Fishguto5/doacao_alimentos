@@ -1,5 +1,7 @@
 # Cache
 .vite
+package.json
+package-lock.json
 
 # Logs
 logs
