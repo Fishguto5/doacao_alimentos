@@ -166,12 +166,6 @@ export default function DonationDetail({ id }) {
 
       <div className="detail-layout">
         <div className="detail-main">
-          {doacao.imagem_desc_url && (
-            <div className="detail-image">
-              <img src={doacao.imagem_desc_url} alt={doacao.titulo} onError={e => e.target.style.display = 'none'} />
-            </div>
-          )}
-
           <div className="detail-header">
             <div className="detail-header-row">
               <span className={`badge badge-${doacao.status}`}>{STATUS_LABELS[doacao.status]}</span>
@@ -183,6 +177,16 @@ export default function DonationDetail({ id }) {
 
           <div className="detail-meta-grid">
             {doacao.cidade && <div className="meta-card"><span className="meta-label">Local</span><span>📍 {doacao.bairro ? `${doacao.bairro}, ` : ''}{doacao.cidade} – {doacao.estado}</span></div>}
+            {(doacao.logradouro || doacao.numero || doacao.complemento) && (
+              <div className="meta-card">
+                <span className="meta-label">Endereço</span>
+                <span>
+                  {doacao.logradouro || ''}
+                  {doacao.numero ? `, ${doacao.numero}` : ''}
+                  {doacao.complemento ? ` (${doacao.complemento})` : ''}
+                </span>
+              </div>
+            )}
             {doacao.estimativa_peso && <div className="meta-card"><span className="meta-label">Peso estimado</span><span>⚖️ {doacao.estimativa_peso} kg</span></div>}
             {doacao.expira_em && <div className="meta-card"><span className="meta-label">Expira em</span><span>📅 {new Date(doacao.expira_em).toLocaleDateString('pt-BR')}</span></div>}
             {doador && <div className="meta-card"><span className="meta-label">Doador</span><span>👤 {doador.nome}</span></div>}

@@ -114,13 +114,18 @@ class Doacao(models.Model):
     cidade = models.CharField(max_length=100)
     estado = models.CharField(max_length=100)
     bairro = models.CharField(max_length=100)
-    expira_em = models.DateTimeField(null=True, blank=True)
+    logradouro = models.CharField(max_length=150)
+    numero = models.CharField(max_length=20, blank=True)
+    complemento = models.CharField(max_length=150, blank=True)
+    expira_em = models.DateField(null=True, blank=True)
     estimativa_peso = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
         blank=True,
     )
+    concluida_por_doador = models.BooleanField(default=False)
+    concluida_por_receptor = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
