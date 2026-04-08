@@ -156,7 +156,7 @@ def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, d
             "complemento": "Apto 4",
             "estimativa_peso": "11.00",
         }
-        patch_payload = {"status": "concluida"}
+        patch_payload = {"descricao": "Descricao parcial"}
         return create_payload, put_payload, patch_payload
 
     if resource == "solicitacao-doacao":
@@ -393,8 +393,77 @@ def test_doacao_so_conclui_quando_reservada(api_client):
 
     conclude_resp = api_client.patch(
         "/doacao/",
-        data={"id": doacao_id, "status": "concluida"},
+        data={
+            "id": doacao_id,
+            "status": "concluida",
+            "confirmacao_usuario_id": doador.id,
+        },
         format="json",
     )
     assert conclude_resp.status_code == 400
     assert "status" in conclude_resp.data
+
+
+@pytest.mark.django_db
+def test_doacao_conclui_apos_voto_de_doador_e_receptor(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    receptor = _create_usuario(seed, "Receptor")
+
+    create_resp = api_client.post(
+        "/doacao/",
+        data={
+            "doador": doador.id,
+            "receptor": receptor.id,
+            "titulo": f"Doacao Votacao {seed}",
+            "descricao": "Teste votacao",
+            "status": "disponivel",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua C",
+            "numero": "30",
+            "complemento": "",
+            "estimativa_peso": "3.00",
+        },
+        format="json",
+    )
+    assert create_resp.status_code == 201
+    doacao_id = create_resp.data["data"]["id"]
+
+    reservar_resp = api_client.patch(
+        "/doacao/",
+        data={"id": doacao_id, "status": "reservada", "receptor": receptor.id},
+        format="json",
+    )
+    assert reservar_resp.status_code == 200
+
+    voto_doador = api_client.patch(
+        "/doacao/",
+        data={
+            "id": doacao_id,
+            "status": "concluida",
+            "confirmacao_usuario_id": doador.id,
+        },
+        format="json",
+    )
+    assert voto_doador.status_code == 200
+    assert voto_doador.data["data"]["status"] == "reservada"
+    assert voto_doador.data["data"]["concluida_por_doador"] is True
+    assert voto_doador.data["data"]["concluida_por_receptor"] is False
+
+    voto_receptor = api_client.patch(
+        "/doacao/",
+        data={
+            "id": doacao_id,
+            "status": "concluida",
+            "confirmacao_usuario_id": receptor.id,
+        },
+        format="json",
+    )
+    assert voto_receptor.status_code == 200
+    assert voto_receptor.data["data"]["status"] == "concluida"
+    assert voto_receptor.data["data"]["concluida_por_doador"] is True
+    assert voto_receptor.data["data"]["concluida_por_receptor"] is True
+    assert voto_receptor.data["data"]["data_conclusao"] is not None

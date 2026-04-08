@@ -129,7 +129,7 @@ CRUD_EXAMPLES = {
             "complemento": "Casa",
             "estimativa_peso": "12.50",
         },
-        "patch": {"id": 1, "status": "concluida"},
+        "patch": {"id": 1, "status": "concluida", "confirmacao_usuario_id": 1},
         "item": {
             "id": 1,
             "doador": 1,

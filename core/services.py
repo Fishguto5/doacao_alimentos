@@ -1,4 +1,5 @@
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from core.models import Doacao, DoacaoStatus
 
@@ -16,15 +17,32 @@ def recompute_doacao_expiracao(doacao: Doacao) -> Doacao:
     return doacao
 
 
-def marcar_doacao_concluida_por_doador(doacao: Doacao) -> Doacao:
-    """Marca conclusao por voto do doador e conclui doacao quando criterio e atendido."""
-    doacao.concluida_por_doador = True
-    doacao.save(update_fields=["concluida_por_doador", "updated_at"])
+def registrar_voto_conclusao(doacao: Doacao, usuario_id: int) -> Doacao:
+    """Registra voto de conclusao e conclui a doacao quando ambas as partes votam."""
+    if doacao.status != DoacaoStatus.RESERVADA:
+        raise ValidationError(
+            {"status": "A doacao precisa estar reservada antes de receber votos de conclusao."}
+        )
 
-    # Fluxo atual: para concluir, basta confirmacao do doador.
-    if doacao.status == DoacaoStatus.RESERVADA and doacao.concluida_por_doador:
+    if usuario_id == doacao.doador_id:
+        doacao.concluida_por_doador = True
+    elif usuario_id == doacao.receptor_id:
+        doacao.concluida_por_receptor = True
+    else:
+        raise ValidationError(
+            {
+                "confirmacao_usuario_id": (
+                    "O usuario informado precisa ser o doador ou o receptor da doacao."
+                )
+            }
+        )
+
+    update_fields = ["concluida_por_doador", "concluida_por_receptor", "updated_at"]
+
+    if doacao.concluida_por_doador and doacao.concluida_por_receptor:
         doacao.status = DoacaoStatus.CONCLUIDA
         doacao.data_conclusao = timezone.now()
-        doacao.save(update_fields=["status", "data_conclusao", "updated_at"])
+        update_fields.extend(["status", "data_conclusao"])
 
+    doacao.save(update_fields=update_fields)
     return doacao
