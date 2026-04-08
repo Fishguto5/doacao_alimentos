@@ -17,6 +17,8 @@ doacao_alimentos_backend.egg-info/
 commands.txt
 prompts.txt
 
+package-lock.json
+
 # migrations precisam ser versionadas para CI/testes
 
 #configuracoes locais 
