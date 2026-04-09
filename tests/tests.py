@@ -40,6 +40,9 @@ def _create_usuario(seed: str, prefix: str) -> Usuario:
         cidade="Campinas",
         estado="SP",
         bairro="Centro",
+        logradouro="Rua Teste",
+        numero="100",
+        complemento="",
         foto_perfil_url="https://example.com/perfil.jpg",
     )
 
@@ -64,6 +67,9 @@ def _create_dependencies(resource: str, seed: str) -> dict:
             cidade="Campinas",
             estado="SP",
             bairro="Centro",
+            logradouro="Rua Teste",
+            numero="100",
+            complemento="",
             estimativa_peso="8.00",
         )
 
@@ -129,6 +135,9 @@ def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, d
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua Teste",
+            "numero": "100",
+            "complemento": "Casa",
             "estimativa_peso": "10.50",
         }
         put_payload = {
@@ -142,9 +151,12 @@ def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, d
             "cidade": "Valinhos",
             "estado": "SP",
             "bairro": "Jardim",
+            "logradouro": "Rua B",
+            "numero": "200",
+            "complemento": "Apto 4",
             "estimativa_peso": "11.00",
         }
-        patch_payload = {"status": "concluida"}
+        patch_payload = {"descricao": "Descricao parcial"}
         return create_payload, put_payload, patch_payload
 
     if resource == "solicitacao-doacao":
@@ -302,3 +314,156 @@ def test_resource_crud_full_cycle(api_client, resource):
 
     # Teardown assertion
     assert not model_class.objects.filter(pk=created_id).exists()
+
+
+@pytest.mark.django_db
+def test_doacao_expira_em_e_definida_pela_menor_data_validade(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    categoria = Categoria.objects.create(nome=f"Categoria Vencimento {seed}")
+
+    resp_doacao = api_client.post(
+        "/doacao/",
+        data={
+            "doador": doador.id,
+            "receptor": None,
+            "titulo": f"Doacao Validade {seed}",
+            "descricao": "Teste de validade",
+            "status": "disponivel",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua A",
+            "numero": "10",
+            "complemento": "",
+            "estimativa_peso": "4.00",
+        },
+        format="json",
+    )
+    assert resp_doacao.status_code == 201
+    doacao_id = resp_doacao.data["data"]["id"]
+
+    for nome, validade in [("Arroz", "2026-12-10"), ("Feijao", "2026-10-01")]:
+        resp_alimento = api_client.post(
+            "/alimento/",
+            data={
+                "categoria": categoria.id,
+                "doacao": doacao_id,
+                "nome": nome,
+                "data_validade": validade,
+                "quantidade": "1.00",
+                "unidade": "kg",
+            },
+            format="json",
+        )
+        assert resp_alimento.status_code == 201
+
+    detail = api_client.get(f"/doacao/{doacao_id}/", format="json")
+    assert detail.status_code == 200
+    assert detail.data["data"]["expira_em"] == "2026-10-01"
+
+
+@pytest.mark.django_db
+def test_doacao_so_conclui_quando_reservada(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    create_resp = api_client.post(
+        "/doacao/",
+        data={
+            "doador": doador.id,
+            "receptor": None,
+            "titulo": f"Doacao Conclusao {seed}",
+            "descricao": "Teste conclusao",
+            "status": "disponivel",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua B",
+            "numero": "20",
+            "complemento": "",
+            "estimativa_peso": "2.00",
+        },
+        format="json",
+    )
+    assert create_resp.status_code == 201
+    doacao_id = create_resp.data["data"]["id"]
+
+    conclude_resp = api_client.patch(
+        "/doacao/",
+        data={
+            "id": doacao_id,
+            "status": "concluida",
+            "confirmacao_usuario_id": doador.id,
+        },
+        format="json",
+    )
+    assert conclude_resp.status_code == 400
+    assert "status" in conclude_resp.data
+
+
+@pytest.mark.django_db
+def test_doacao_conclui_apos_voto_de_doador_e_receptor(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    receptor = _create_usuario(seed, "Receptor")
+
+    create_resp = api_client.post(
+        "/doacao/",
+        data={
+            "doador": doador.id,
+            "receptor": receptor.id,
+            "titulo": f"Doacao Votacao {seed}",
+            "descricao": "Teste votacao",
+            "status": "disponivel",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua C",
+            "numero": "30",
+            "complemento": "",
+            "estimativa_peso": "3.00",
+        },
+        format="json",
+    )
+    assert create_resp.status_code == 201
+    doacao_id = create_resp.data["data"]["id"]
+
+    reservar_resp = api_client.patch(
+        "/doacao/",
+        data={"id": doacao_id, "status": "reservada", "receptor": receptor.id},
+        format="json",
+    )
+    assert reservar_resp.status_code == 200
+
+    voto_doador = api_client.patch(
+        "/doacao/",
+        data={
+            "id": doacao_id,
+            "status": "concluida",
+            "confirmacao_usuario_id": doador.id,
+        },
+        format="json",
+    )
+    assert voto_doador.status_code == 200
+    assert voto_doador.data["data"]["status"] == "reservada"
+    assert voto_doador.data["data"]["concluida_por_doador"] is True
+    assert voto_doador.data["data"]["concluida_por_receptor"] is False
+
+    voto_receptor = api_client.patch(
+        "/doacao/",
+        data={
+            "id": doacao_id,
+            "status": "concluida",
+            "confirmacao_usuario_id": receptor.id,
+        },
+        format="json",
+    )
+    assert voto_receptor.status_code == 200
+    assert voto_receptor.data["data"]["status"] == "concluida"
+    assert voto_receptor.data["data"]["concluida_por_doador"] is True
+    assert voto_receptor.data["data"]["concluida_por_receptor"] is True
+    assert voto_receptor.data["data"]["data_conclusao"] is not None

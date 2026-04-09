@@ -15,9 +15,9 @@ export default function CreateDonation() {
   const estadoSelectRef = useRef(null)
 
   const [form, setForm] = useState({
-    titulo: '', descricao: '', imagem_desc_url: '',
+    titulo: '', descricao: '',
     cep: '', cidade: user?.cidade || '', estado: user?.estado || '',
-    bairro: '', estimativa_peso: '', expira_em: '',
+    bairro: '', logradouro: '', numero: '', complemento: '', estimativa_peso: '',
   })
 
   const [alimentos, setAlimentos] = useState([
@@ -26,6 +26,11 @@ export default function CreateDonation() {
 
   const [newCategoria, setNewCategoria] = useState('')
   const [showNewCategoria, setShowNewCategoria] = useState(false)
+
+  const expiracaoCalculada = alimentos
+    .map(a => a.data_validade)
+    .filter(Boolean)
+    .sort()[0] || ''
 
   useEffect(() => {
     if (!user) { navigate('#/register'); return }
@@ -90,10 +95,11 @@ export default function CreateDonation() {
         cidade: form.cidade,
         estado: form.estado,
         bairro: form.bairro,
+        logradouro: form.logradouro,
+        numero: form.numero,
+        complemento: form.complemento,
         estimativa_peso: form.estimativa_peso || null,
       }
-      if (form.imagem_desc_url) payload.imagem_desc_url = form.imagem_desc_url
-      if (form.expira_em) payload.expira_em = form.expira_em
 
       const doacao = await api.createDoacao(payload)
 
@@ -141,19 +147,15 @@ export default function CreateDonation() {
             <textarea className="input" rows={4} value={form.descricao} onChange={e => updateForm('descricao', e.target.value)} placeholder="Descreva os alimentos, estado de conservação, etc." />
           </div>
 
-          <div className="form-group">
-            <label>URL da imagem</label>
-            <input className="input" type="url" value={form.imagem_desc_url} onChange={e => updateForm('imagem_desc_url', e.target.value)} placeholder="https://..." />
-          </div>
-
           <div className="form-row">
             <div className="form-group">
               <label>Peso estimado (kg)</label>
               <input className="input" type="number" min="0" step="0.1" value={form.estimativa_peso} onChange={e => updateForm('estimativa_peso', e.target.value)} placeholder="0.0" />
             </div>
             <div className="form-group">
-              <label>Expira em</label>
-              <input className="input" type="datetime-local" value={form.expira_em} onChange={e => updateForm('expira_em', e.target.value)} />
+              <label>Data de vencimento da doação</label>
+              <input className="input" type="date" value={expiracaoCalculada} readOnly />
+              <small>Definida automaticamente pela menor validade dos itens.</small>
             </div>
           </div>
         </section>
@@ -206,6 +208,20 @@ export default function CreateDonation() {
               <label>CEP *</label>
               <input className="input" required value={form.cep} onChange={e => updateForm('cep', e.target.value)} maxLength={8} />
             </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Logradouro *</label>
+              <input className="input" required value={form.logradouro} onChange={e => updateForm('logradouro', e.target.value)} />
+            </div>
+            <div className="form-group form-group-sm">
+              <label>Número</label>
+              <input className="input" value={form.numero} onChange={e => updateForm('numero', e.target.value)} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Complemento</label>
+            <input className="input" value={form.complemento} onChange={e => updateForm('complemento', e.target.value)} />
           </div>
         </section>
 

@@ -28,6 +28,7 @@ from core.serializers import (
     SolicitacaoDoacaoSerializer,
     UsuarioSerializer,
 )
+from core.services import recompute_doacao_expiracao
 
 DELETE_ID_SERIALIZER = inline_serializer(
     name="DeleteByIdRequest",
@@ -53,6 +54,9 @@ CRUD_EXAMPLES = {
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua das Flores",
+            "numero": "123",
+            "complemento": "Apto 12",
             "foto_perfil_url": "https://example.com/foto.jpg",
         },
         "update": {
@@ -64,6 +68,9 @@ CRUD_EXAMPLES = {
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua das Flores",
+            "numero": "123",
+            "complemento": "Apto 12",
             "foto_perfil_url": "https://example.com/foto.jpg",
         },
         "patch": {"id": 1, "bairro": "Taquaral"},
@@ -76,6 +83,9 @@ CRUD_EXAMPLES = {
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua das Flores",
+            "numero": "123",
+            "complemento": "Apto 12",
             "foto_perfil_url": "https://example.com/foto.jpg",
             "created_at": "2026-03-24T10:00:00Z",
             "updated_at": "2026-03-24T10:00:00Z",
@@ -93,12 +103,14 @@ CRUD_EXAMPLES = {
             "receptor": None,
             "titulo": "Cesta Basica",
             "descricao": "Cesta com alimentos nao pereciveis",
-            "imagem_desc_url": "https://example.com/cesta.jpg",
             "status": "disponivel",
             "cep": "13000000",
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua das Flores",
+            "numero": "123",
+            "complemento": "Casa",
             "estimativa_peso": "12.50",
         },
         "update": {
@@ -107,22 +119,23 @@ CRUD_EXAMPLES = {
             "receptor": 2,
             "titulo": "Cesta Basica Atualizada",
             "descricao": "Cesta com alimentos nao pereciveis",
-            "imagem_desc_url": "https://example.com/cesta.jpg",
             "status": "reservada",
             "cep": "13000000",
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua das Flores",
+            "numero": "123",
+            "complemento": "Casa",
             "estimativa_peso": "12.50",
         },
-        "patch": {"id": 1, "status": "concluida"},
+        "patch": {"id": 1, "status": "concluida", "confirmacao_usuario_id": 1},
         "item": {
             "id": 1,
             "doador": 1,
             "receptor": 2,
             "titulo": "Cesta Basica",
             "descricao": "Cesta com alimentos nao pereciveis",
-            "imagem_desc_url": "https://example.com/cesta.jpg",
             "status": "disponivel",
             "data_publicacao": "2026-03-24T10:00:00Z",
             "data_reserva": None,
@@ -131,6 +144,9 @@ CRUD_EXAMPLES = {
             "cidade": "Campinas",
             "estado": "SP",
             "bairro": "Centro",
+            "logradouro": "Rua das Flores",
+            "numero": "123",
+            "complemento": "Casa",
             "expira_em": None,
             "estimativa_peso": "12.50",
             "created_at": "2026-03-24T10:00:00Z",
@@ -910,7 +926,9 @@ def view_alimento_detail(request, id):
                 status=status.HTTP_200_OK,
             )
         elif request.method == "DELETE":
+            doacao = alimento_obj.doacao
             alimento_obj.delete()
+            recompute_doacao_expiracao(doacao)
             return Response(
                 {"msg": "Alimento deleted successfully"}, status=status.HTTP_204_NO_CONTENT
             )

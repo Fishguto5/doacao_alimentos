@@ -20,15 +20,6 @@ export default function DonationCard({ doacao }) {
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && navigate(`#/donation/${doacao.id}`)}
     >
-      {doacao.imagem_desc_url && (
-        <div className="card-image">
-          <img
-            src={doacao.imagem_desc_url}
-            alt={doacao.titulo}
-            onError={e => { e.target.style.display = 'none' }}
-          />
-        </div>
-      )}
       <div className="card-body">
         <div className="card-header-row">
           <span className={statusClass}>{STATUS_LABELS[doacao.status] || doacao.status}</span>
