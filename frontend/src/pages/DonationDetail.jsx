@@ -194,7 +194,7 @@ export default function DonationDetail({ id }) {
                   <div key={a.id} className="alimento-item">
                     <span className="alimento-nome">{a.nome}</span>
                     <span className="alimento-qty">{a.quantidade} {UNIDADE_LABELS[a.unidade] || a.unidade}</span>
-                    {a.data_validade && <span className="alimento-val">Val: {a.data_validade}</span>}
+                    {a.data_validade && <span className="alimento-val">Val: {a.data_validade.split('-').reverse().join('-')}</span>}
                   </div>
                 ))}
               </div>
