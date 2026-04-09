@@ -64,6 +64,7 @@ O projeto agora aceita PostgreSQL por variáveis de ambiente, com SQLite como fa
 
 Exemplo de `.env`:
 
+
 ```
 USE_POSTGRES=true
 POSTGRES_DB=doacao_alimentos
