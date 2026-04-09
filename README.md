@@ -146,6 +146,24 @@ Também dá para executar pela janela de testes do VSCode
 
 Observação: use `pytest` (sem `-c tests/pytest.ini`). O arquivo de configuração válido está na raiz (`pytest.ini`).
 
+# Padronização dos commits para alteração do semantic release.
+
+Para incremento da versão patch utilize a mensagem dentro do commit:
+
+fix: [mensagem]
+
+Para incremento da versão minor utilize a mensagem dentro do commit:
+
+feat: [mensagem]
+
+Para incremento da versão major utilize a mensagem dentro do commit:
+
+feat!: [mensagem]
+
+Para não alterar nenhuma versão do semantic release:
+
+chore: [mensagem]
+
 ## Requirements:
 Python - 3.14.3+
 npm - 10.9.2+
