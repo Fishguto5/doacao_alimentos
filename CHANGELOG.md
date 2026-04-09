@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.0 (2026-04-09)
+
+### Features
+
+- Ajustando o incremento do semantic release para feature de recepção de doação
+  ([`a341bcb`](https://github.com/mc656-1s2026/doacao_alimentos/commit/a341bcb9fd5642db4caba41cf2f044f93abe0938))
+
+
 ## v0.0.2 (2026-04-09)
 
 ### Bug Fixes
