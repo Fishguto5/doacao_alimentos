@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
@@ -24,7 +24,7 @@ export default function DonationDetail({ id }) {
   const [ratingForm, setRatingForm] = useState({ nota: 5, comentario: '' })
   const [showRating, setShowRating] = useState(false)
 
-  const loadData = useCallback(async () => {
+  async function loadData() {
     setLoading(true)
     setError('')
     try {
@@ -46,20 +46,15 @@ export default function DonationDetail({ id }) {
     } finally {
       setLoading(false)
     }
-  }, [id])
+  }
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+  useEffect(() => { loadData() }, [id])
 
   const isDonor = user && doacao && doacao.doador === user.id
-  const isReceptor = user && doacao && doacao.receptor === user.id
   const mySolicitation = user && solicitacoes.find(s => s.solicitante === user.id)
   const canRequest = user && doacao?.status === 'disponivel' && !isDonor && !mySolicitation
   const myRating = user && avaliacoes.find(a => a.avaliador === user.id)
   const canRate = user && doacao?.status === 'concluida' && !myRating && (isDonor || doacao?.receptor === user.id)
-  const canVoteConclude = user && doacao?.status === 'reservada' && (isDonor || isReceptor)
-  const myVoteDone = canVoteConclude && (isDonor ? doacao?.concluida_por_doador : doacao?.concluida_por_receptor)
 
   async function handleRequest(e) {
     e.preventDefault()
@@ -129,16 +124,8 @@ export default function DonationDetail({ id }) {
   async function handleConclude() {
     setSubmitting(true)
     try {
-      const updated = await api.updateDoacao({
-        id: doacao.id,
-        status: 'concluida',
-        confirmacao_usuario_id: user.id,
-      })
-      if (updated.status === 'concluida') {
-        setFeedback('Doação concluída com confirmação das duas partes!')
-      } else {
-        setFeedback('Sua confirmação foi registrada. Aguardando a outra parte confirmar.')
-      }
+      await api.updateDoacao({ id: doacao.id, status: 'concluida', data_conclusao: new Date().toISOString() })
+      setFeedback('Doação marcada como concluída!')
       loadData()
     } catch (err) {
       setFeedback('Erro: ' + err.message)
@@ -177,6 +164,12 @@ export default function DonationDetail({ id }) {
 
       <div className="detail-layout">
         <div className="detail-main">
+          {doacao.imagem_desc_url && (
+            <div className="detail-image">
+              <img src={doacao.imagem_desc_url} alt={doacao.titulo} onError={e => e.target.style.display = 'none'} />
+            </div>
+          )}
+
           <div className="detail-header">
             <div className="detail-header-row">
               <span className={`badge badge-${doacao.status}`}>{STATUS_LABELS[doacao.status]}</span>
@@ -188,26 +181,8 @@ export default function DonationDetail({ id }) {
 
           <div className="detail-meta-grid">
             {doacao.cidade && <div className="meta-card"><span className="meta-label">Local</span><span>📍 {doacao.bairro ? `${doacao.bairro}, ` : ''}{doacao.cidade} – {doacao.estado}</span></div>}
-            {(doacao.logradouro || doacao.numero || doacao.complemento) && (
-              <div className="meta-card">
-                <span className="meta-label">Endereço</span>
-                <span>
-                  {doacao.logradouro || ''}
-                  {doacao.numero ? `, ${doacao.numero}` : ''}
-                  {doacao.complemento ? ` (${doacao.complemento})` : ''}
-                </span>
-              </div>
-            )}
             {doacao.estimativa_peso && <div className="meta-card"><span className="meta-label">Peso estimado</span><span>⚖️ {doacao.estimativa_peso} kg</span></div>}
             {doacao.expira_em && <div className="meta-card"><span className="meta-label">Expira em</span><span>📅 {new Date(doacao.expira_em).toLocaleDateString('pt-BR')}</span></div>}
-            {doacao.status === 'reservada' && (
-              <div className="meta-card">
-                <span className="meta-label">Confirmações de conclusão</span>
-                <span>
-                  Doador: {doacao.concluida_por_doador ? 'ok' : 'pendente'} | Receptor: {doacao.concluida_por_receptor ? 'ok' : 'pendente'}
-                </span>
-              </div>
-            )}
             {doador && <div className="meta-card"><span className="meta-label">Doador</span><span>👤 {doador.nome}</span></div>}
           </div>
 
@@ -248,9 +223,7 @@ export default function DonationDetail({ id }) {
                 <button className="btn-danger btn-full" onClick={handleCancel} disabled={submitting}>Cancelar doação</button>
               )}
               {doacao.status === 'reservada' && (
-                <button className="btn-primary btn-full" onClick={handleConclude} disabled={submitting || doacao.concluida_por_doador}>
-                  {doacao.concluida_por_doador ? 'Você já confirmou a conclusão' : 'Confirmar conclusão (doador)'}
-                </button>
+                <button className="btn-primary btn-full" onClick={handleConclude} disabled={submitting}>Marcar como concluída</button>
               )}
 
               {solicitacoes.length > 0 && (
@@ -306,16 +279,6 @@ export default function DonationDetail({ id }) {
               </div>
               {mySolicitation.mensagem && <p className="request-msg">"{mySolicitation.mensagem}"</p>}
               <p className="request-date">Enviada em {new Date(mySolicitation.data_solicitacao).toLocaleDateString('pt-BR')}</p>
-            </div>
-          )}
-
-          {canVoteConclude && isReceptor && (
-            <div className="sidebar-card">
-              <h3>Finalização da doação</h3>
-              <p>Depois que ambos confirmarem, a doação será concluída.</p>
-              <button className="btn-primary btn-full" onClick={handleConclude} disabled={submitting || myVoteDone}>
-                {myVoteDone ? 'Você já confirmou a conclusão' : 'Confirmar conclusão (receptor)'}
-              </button>
             </div>
           )}
 

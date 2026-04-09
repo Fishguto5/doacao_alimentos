@@ -6,6 +6,29 @@ import { navigate } from '../router'
 const UNIDADES = ['kg', 'g', 'l', 'ml', 'unidade']
 const UFS_BRASIL = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
 
+function isoToDisplay(iso) {
+  if (!iso) return ''
+  const parts = iso.split('-')
+  if (parts.length !== 3) return iso
+  const [year, month, day] = parts
+  return `${day}/${month}/${year}`
+}
+
+function displayToIso(display) {
+  if (!display || display.length !== 10) return ''
+  const parts = display.split('/')
+  if (parts.length !== 3) return ''
+  const [day, month, year] = parts
+  return `${year}-${month}-${day}`
+}
+
+function formatDateInput(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
 export default function CreateDonation() {
   const { user } = useUser()
   const [categorias, setCategorias] = useState([])
@@ -28,7 +51,7 @@ export default function CreateDonation() {
   const [showNewCategoria, setShowNewCategoria] = useState(false)
 
   const expiracaoCalculada = alimentos
-    .map(a => a.data_validade)
+    .map(a => a.data_validade ? displayToIso(a.data_validade) : '')
     .filter(Boolean)
     .sort()[0] || ''
 
@@ -110,7 +133,7 @@ export default function CreateDonation() {
             doacao: doacao.id,
             categoria: Number(a.categoria),
             nome: a.nome,
-            data_validade: a.data_validade || null,
+            data_validade: a.data_validade ? displayToIso(a.data_validade) : null,
             quantidade: a.quantidade,
             unidade: a.unidade,
           })
@@ -154,7 +177,7 @@ export default function CreateDonation() {
             </div>
             <div className="form-group">
               <label>Data de vencimento da doação</label>
-              <input className="input" type="date" value={expiracaoCalculada} readOnly />
+              <input className="input" type="text" value={isoToDisplay(expiracaoCalculada)} readOnly />
               <small>Definida automaticamente pela menor validade dos itens.</small>
             </div>
           </div>
@@ -263,7 +286,14 @@ export default function CreateDonation() {
                 </div>
                 <div className="form-group">
                   <label>Validade</label>
-                  <input className="input" type="date" value={a.data_validade} onChange={e => updateAlimento(i, 'data_validade', e.target.value)} />
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="dd/mm/aaaa"
+                    maxLength={10}
+                    value={a.data_validade}
+                    onChange={e => updateAlimento(i, 'data_validade', formatDateInput(e.target.value))}
+                  />
                 </div>
                 {alimentos.length > 1 && (
                   <button type="button" className="btn-remove" onClick={() => removeAlimento(i)} title="Remover item">✕</button>
