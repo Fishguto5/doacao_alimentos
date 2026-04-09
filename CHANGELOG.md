@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.1.1 (2026-04-09)
+
+### Bug Fixes
+
+- Ajuste das datas dentro do card de doação
+  ([`2d52420`](https://github.com/mc656-1s2026/doacao_alimentos/commit/2d52420d00fe7d3b664c8fbbbf5a8ada61e260fe))
+
+- Data nos cards de alimento do painel de visualização da doação
+  ([`f5f867c`](https://github.com/mc656-1s2026/doacao_alimentos/commit/f5f867cbeaa308fe0b064947269f6b206e334889))
+
+
 ## v0.1.0 (2026-04-09)
 
 ### Features
