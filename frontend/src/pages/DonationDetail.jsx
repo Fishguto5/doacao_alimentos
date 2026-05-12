@@ -23,6 +23,7 @@ export default function DonationDetail({ id }) {
   const [feedback, setFeedback] = useState('')
   const [ratingForm, setRatingForm] = useState({ nota: 5, comentario: '' })
   const [showRating, setShowRating] = useState(false)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
 
   async function loadData() {
     setLoading(true)
@@ -150,6 +151,14 @@ export default function DonationDetail({ id }) {
     }
   }
 
+  function openImageModal() {
+    setIsImageModalOpen(true)
+  }
+
+  function closeImageModal() {
+    setIsImageModalOpen(false)
+  }
+
   if (loading) return <main className="page"><div className="loading">Carregando...</div></main>
   if (error) return <main className="page"><div className="error-msg">Erro: {error}</div></main>
   if (!doacao) return null
@@ -164,11 +173,26 @@ export default function DonationDetail({ id }) {
 
       <div className="detail-layout">
         <div className="detail-main">
-          {doacao.imagem && (
-            <div className="detail-image">
-              <img src={doacao.imagem} alt={doacao.titulo} onError={e => e.target.style.display = 'none'} />
-            </div>
-          )}
+          <div className="detail-image-wrapper">
+            {doacao.imagem ? (
+              <button
+                type="button"
+                className="detail-image detail-image-button"
+                onClick={openImageModal}
+              >
+                <img
+                  src={doacao.imagem}
+                  alt={`Imagem ilustrativa da doação: ${doacao.titulo}`}
+                  onError={e => { e.target.style.display = 'none' }}
+                />
+                <div className="detail-image-overlay">Clique para ampliar</div>
+              </button>
+            ) : (
+              <div className="detail-image detail-image-placeholder">
+                <span>Imagem indisponível</span>
+              </div>
+            )}
+          </div>
 
           <div className="detail-header">
             <div className="detail-header-row">
@@ -210,6 +234,25 @@ export default function DonationDetail({ id }) {
                   {av.comentario && <p>{av.comentario}</p>}
                 </div>
               ))}
+            </div>
+          )}
+
+          {isImageModalOpen && (
+            <div className="image-modal-overlay" onClick={closeImageModal} role="dialog" aria-modal="true">
+              <div className="image-modal-content" onClick={e => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="image-modal-close"
+                  onClick={closeImageModal}
+                  aria-label="Fechar imagem"
+                >
+                  ×
+                </button>
+                <img
+                  src={doacao.imagem}
+                  alt={`Imagem em tela cheia da doação: ${doacao.titulo}`}
+                />
+              </div>
             </div>
           )}
         </div>
