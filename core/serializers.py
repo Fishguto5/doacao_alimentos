@@ -39,6 +39,18 @@ class CategoriaSerializer(serializers.ModelSerializer):
 class DoacaoSerializer(serializers.ModelSerializer):
     confirmacao_usuario_id = serializers.IntegerField(write_only=True, required=False)
 
+    def validate_imagem(self, value):
+        """Validar tamanho máximo da imagem (5MB)"""
+        if value:
+            file_size = value.size
+            limit_mb = 5
+            if file_size > limit_mb * 1024 * 1024:
+                raise ValidationError(
+                    f"Tamanho máximo da imagem é {limit_mb}MB. "
+                    f"Tamanho atual: {file_size / (1024 * 1024):.2f}MB"
+                )
+        return value
+
     def validate(self, attrs):
         status = attrs.get("status")
         if status == DoacaoStatus.CONCLUIDA:
