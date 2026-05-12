@@ -36,6 +36,8 @@ export default function CreateDonation() {
   const [error, setError] = useState('')
   const [showEstadoOptions, setShowEstadoOptions] = useState(false)
   const estadoSelectRef = useRef(null)
+  const [imagem, setImagem] = useState(null)
+  const [imagemPreview, setImagemPreview] = useState(null)
 
   const [form, setForm] = useState({
     titulo: '', descricao: '',
@@ -75,6 +77,23 @@ export default function CreateDonation() {
     setForm(f => ({ ...f, [field]: value }))
   }
 
+  function handleImagemChange(e) {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImagem(file)
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setImagemPreview(event.target?.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  function removeImagem() {
+    setImagem(null)
+    setImagemPreview(null)
+  }
+
   function updateAlimento(i, field, value) {
     setAlimentos(list => list.map((a, idx) => idx === i ? { ...a, [field]: value } : a))
   }
@@ -108,20 +127,21 @@ export default function CreateDonation() {
     }
     setLoading(true)
     try {
-      const payload = {
-        doador: user.id,
-        receptor: null,
-        status: 'disponivel',
-        titulo: form.titulo,
-        descricao: form.descricao,
-        cep: form.cep,
-        cidade: form.cidade,
-        estado: form.estado,
-        bairro: form.bairro,
-        logradouro: form.logradouro,
-        numero: form.numero,
-        complemento: form.complemento,
-        estimativa_peso: form.estimativa_peso || null,
+      const payload = new FormData()
+      payload.append('doador', user.id)
+      payload.append('status', 'disponivel')
+      payload.append('titulo', form.titulo)
+      payload.append('descricao', form.descricao)
+      payload.append('cep', form.cep)
+      payload.append('cidade', form.cidade)
+      payload.append('estado', form.estado)
+      payload.append('bairro', form.bairro)
+      payload.append('logradouro', form.logradouro)
+      payload.append('numero', form.numero)
+      payload.append('complemento', form.complemento)
+      payload.append('estimativa_peso', form.estimativa_peso || '')
+      if (imagem) {
+        payload.append('imagem', imagem)
       }
 
       const doacao = await api.createDoacao(payload)
@@ -168,6 +188,25 @@ export default function CreateDonation() {
           <div className="form-group">
             <label>Descrição</label>
             <textarea className="input" rows={4} value={form.descricao} onChange={e => updateForm('descricao', e.target.value)} placeholder="Descreva os alimentos, estado de conservação, etc." />
+          </div>
+
+          <div className="form-group">
+            <label>Imagem da doação</label>
+            {imagemPreview ? (
+              <div className="imagem-preview">
+                <img src={imagemPreview} alt="Preview da imagem" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }} />
+                <button type="button" className="btn-remove" onClick={removeImagem} style={{ marginTop: '8px' }}>Remover imagem</button>
+              </div>
+            ) : (
+              <input
+                className="input"
+                type="file"
+                accept="image/*"
+                onChange={handleImagemChange}
+                placeholder="Selecione uma imagem"
+              />
+            )}
+            <small>Máximo 5MB. Formatos aceitos: JPG, PNG, GIF, WebP</small>
           </div>
 
           <div className="form-row">

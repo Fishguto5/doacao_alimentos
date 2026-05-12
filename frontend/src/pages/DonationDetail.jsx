@@ -164,9 +164,9 @@ export default function DonationDetail({ id }) {
 
       <div className="detail-layout">
         <div className="detail-main">
-          {doacao.imagem_desc_url && (
+          {doacao.imagem && (
             <div className="detail-image">
-              <img src={doacao.imagem_desc_url} alt={doacao.titulo} onError={e => e.target.style.display = 'none'} />
+              <img src={doacao.imagem} alt={doacao.titulo} onError={e => e.target.style.display = 'none'} />
             </div>
           )}
 
