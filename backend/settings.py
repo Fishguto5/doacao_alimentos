@@ -158,5 +158,5 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Media files (User uploads)
 # https://docs.djangoproject.com/en/6.0/ref/settings/#media-url
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
