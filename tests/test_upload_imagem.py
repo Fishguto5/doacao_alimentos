@@ -74,7 +74,7 @@ def test_criar_doacao_com_imagem(api_client):
     assert response.status_code == 201
     assert response.data["data"]["imagem"] is not None
     assert "media/doacoes" in response.data["data"]["imagem"]
-    
+
     # Verificar que a doação foi criada com a imagem
     doacao = Doacao.objects.get(id=response.data["data"]["id"])
     assert doacao.imagem is not None
@@ -115,18 +115,14 @@ def test_validacao_tamanho_maximo_imagem(api_client):
     """Teste: validar que imagens maiores que 5MB são rejeitadas."""
     seed = uuid.uuid4().hex[:8]
     doador = _create_usuario(seed, "Doador")
-    
-# Criar uma imagem grande não compactada (> 5MB)
+
+    # Criar uma imagem grande não compactada (> 5MB)
     image = Image.new("RGB", (3000, 3000), color="blue")
     image_io = io.BytesIO()
     image.save(image_io, format="BMP")
     image_io.seek(0)
 
-    imagem_grande = SimpleUploadedFile(
-        "grande.bmp",
-        image_io.getvalue(),
-        content_type="image/bmp"
-    )
+    imagem_grande = SimpleUploadedFile("grande.bmp", image_io.getvalue(), content_type="image/bmp")
 
     response = api_client.post(
         "/doacao/",
@@ -161,7 +157,7 @@ def test_validacao_tipos_imagem_validos(api_client):
     # Testar diferentes formatos
     for formato in ["JPEG", "PNG", "GIF"]:
         imagem = _create_test_image(f"test.{formato.lower()}", format=formato)
-        
+
         response = api_client.post(
             "/doacao/",
             data={
@@ -181,7 +177,7 @@ def test_validacao_tipos_imagem_validos(api_client):
             },
             format="multipart",
         )
-        
+
         assert response.status_code == 201
         assert response.data["data"]["imagem"] is not None
 
@@ -290,10 +286,10 @@ def test_listar_doacoes_com_imagens(api_client):
     """Teste: listar todas as doações retorna as URLs das imagens."""
     seed = uuid.uuid4().hex[:8]
     doador = _create_usuario(seed, "Doador")
-    
+
     # Criar duas doações, uma com e uma sem imagem
     imagem = _create_test_image("doacao.jpg")
-    
+
     api_client.post(
         "/doacao/",
         data={
@@ -313,7 +309,7 @@ def test_listar_doacoes_com_imagens(api_client):
         },
         format="multipart",
     )
-    
+
     api_client.post(
         "/doacao/",
         data={
@@ -338,7 +334,7 @@ def test_listar_doacoes_com_imagens(api_client):
 
     assert list_response.status_code == 200
     assert len(list_response.data["data"]) >= 2
-    
+
     # Verificar que pelo menos uma tem imagem
     doacoes_com_imagem = [d for d in list_response.data["data"] if d.get("imagem")]
     assert len(doacoes_com_imagem) >= 1
