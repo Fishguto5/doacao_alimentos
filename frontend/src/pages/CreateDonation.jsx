@@ -179,6 +179,7 @@ export default function CreateDonation() {
         )
         navigate(`#/donation/${doacao.id}`)
       } catch (alimentoErr) {
+        console.error('Falha ao criar os alimentos:', alimentoErr)
         // Se falhar ao criar os alimentos, tenta deletar a doação criada para não deixar órfã
         try {
            await api.deleteDoacao(doacao.id)

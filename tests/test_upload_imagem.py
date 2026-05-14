@@ -294,7 +294,7 @@ def test_listar_doacoes_com_imagens(api_client):
     # Criar duas doações, uma com e uma sem imagem
     imagem = _create_test_image("doacao.jpg")
     
-    create_response1 = api_client.post(
+    api_client.post(
         "/doacao/",
         data={
             "doador": doador.id,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
@@ -25,7 +25,7 @@ export default function DonationDetail({ id }) {
   const [showRating, setShowRating] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -47,9 +47,9 @@ export default function DonationDetail({ id }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
 
-  useEffect(() => { loadData() }, [id])
+  useEffect(() => { loadData() }, [loadData])
 
   const isDonor = user && doacao && doacao.doador === user.id
   const mySolicitation = user && solicitacoes.find(s => s.solicitante === user.id)
