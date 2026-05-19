@@ -17,6 +17,7 @@ export default defineConfig({
       '/solicitacao-doacao': 'http://localhost:8000',
       '/notificacao': 'http://localhost:8000',
       '/avaliacao': 'http://localhost:8000',
+      '/media': 'http://localhost:8000',
     },
   },
 })

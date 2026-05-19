@@ -36,6 +36,8 @@ export default function CreateDonation() {
   const [error, setError] = useState('')
   const [showEstadoOptions, setShowEstadoOptions] = useState(false)
   const estadoSelectRef = useRef(null)
+  const [imagem, setImagem] = useState(null)
+  const [imagemPreview, setImagemPreview] = useState(null)
 
   const [form, setForm] = useState({
     titulo: '', descricao: '',
@@ -75,6 +77,23 @@ export default function CreateDonation() {
     setForm(f => ({ ...f, [field]: value }))
   }
 
+  function handleImagemChange(e) {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImagem(file)
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setImagemPreview(event.target?.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  function removeImagem() {
+    setImagem(null)
+    setImagemPreview(null)
+  }
+
   function updateAlimento(i, field, value) {
     setAlimentos(list => list.map((a, idx) => idx === i ? { ...a, [field]: value } : a))
   }
@@ -102,44 +121,73 @@ export default function CreateDonation() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (!form.estado) {
-      setError('Selecione o estado da doação.')
-      return
+
+    // Validação básica dos campos obrigatórios
+    if (!form.titulo.trim()) return setError('O título da doação é obrigatório.')
+    if (!form.cidade.trim()) return setError('A cidade é obrigatória.')
+    if (!form.estado) return setError('Selecione o estado da doação.')
+    if (!form.bairro.trim()) return setError('O bairro é obrigatório.')
+    if (!form.cep.trim() || form.cep.trim().length !== 8) return setError('O CEP é obrigatório e deve ter 8 dígitos.')
+    if (!form.logradouro.trim()) return setError('O logradouro é obrigatório.')
+    if (!form.numero.trim()) return setError('O número é obrigatório.')
+
+    // Validação do tamanho da imagem (máximo 5MB)
+    if (imagem && imagem.size > 5 * 1024 * 1024) {
+      return setError('A imagem excede o tamanho máximo de 5MB.')
     }
+
+    // Validação dos alimentos
+    const validAlimentos = alimentos.filter(a => a.nome.trim() && a.categoria && a.quantidade && Number(a.quantidade) > 0)
+    if (validAlimentos.length === 0) {
+      return setError('Adicione pelo menos um item (alimento) válido com nome, categoria e quantidade maior que zero.')
+    }
+
+
     setLoading(true)
     try {
-      const payload = {
-        doador: user.id,
-        receptor: null,
-        status: 'disponivel',
-        titulo: form.titulo,
-        descricao: form.descricao,
-        cep: form.cep,
-        cidade: form.cidade,
-        estado: form.estado,
-        bairro: form.bairro,
-        logradouro: form.logradouro,
-        numero: form.numero,
-        complemento: form.complemento,
-        estimativa_peso: form.estimativa_peso || null,
+      const payload = new FormData()
+      payload.append('doador', user.id)
+      payload.append('status', 'disponivel')
+      payload.append('titulo', form.titulo)
+      payload.append('descricao', form.descricao)
+      payload.append('cep', form.cep)
+      payload.append('cidade', form.cidade)
+      payload.append('estado', form.estado)
+      payload.append('bairro', form.bairro)
+      payload.append('logradouro', form.logradouro)
+      payload.append('numero', form.numero)
+      payload.append('complemento', form.complemento)
+      payload.append('estimativa_peso', form.estimativa_peso || '')
+      if (imagem) {
+        payload.append('imagem', imagem)
       }
 
       const doacao = await api.createDoacao(payload)
 
-      const validAlimentos = alimentos.filter(a => a.nome.trim() && a.categoria && a.quantidade)
-      await Promise.all(
-        validAlimentos.map(a =>
-          api.createAlimento({
-            doacao: doacao.id,
-            categoria: Number(a.categoria),
-            nome: a.nome,
-            data_validade: a.data_validade ? displayToIso(a.data_validade) : null,
-            quantidade: a.quantidade,
-            unidade: a.unidade,
-          })
+      try {
+        await Promise.all(
+          validAlimentos.map(a =>
+            api.createAlimento({
+              doacao: doacao.id,
+              categoria: Number(a.categoria),
+              nome: a.nome,
+              data_validade: a.data_validade ? displayToIso(a.data_validade) : null,
+              quantidade: a.quantidade,
+              unidade: a.unidade,
+            })
+          )
         )
-      )
-      navigate(`#/donation/${doacao.id}`)
+        navigate(`#/donation/${doacao.id}`)
+      } catch (alimentoErr) {
+        console.error('Falha ao criar os alimentos:', alimentoErr)
+        // Se falhar ao criar os alimentos, tenta deletar a doação criada para não deixar órfã
+        try {
+           await api.deleteDoacao(doacao.id)
+        } catch (delErr) {
+           console.error('Falha ao reverter a doação:', delErr)
+        }
+        throw new Error('Falha ao adicionar os itens à doação. A operação foi cancelada.')
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -166,8 +214,27 @@ export default function CreateDonation() {
           </div>
 
           <div className="form-group">
-            <label>Descrição</label>
-            <textarea className="input" rows={4} value={form.descricao} onChange={e => updateForm('descricao', e.target.value)} placeholder="Descreva os alimentos, estado de conservação, etc." />
+            <label>Descrição *</label>
+            <textarea className="input" rows={4} required value={form.descricao} onChange={e => updateForm('descricao', e.target.value)} placeholder="Descreva os alimentos, estado de conservação, etc." />
+          </div>
+
+          <div className="form-group">
+            <label>Imagem da doação</label>
+            {imagemPreview ? (
+              <div className="imagem-preview">
+                <img src={imagemPreview} alt="Preview da imagem" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }} />
+                <button type="button" className="btn-remove" onClick={removeImagem} style={{ marginTop: '8px' }}>Remover imagem</button>
+              </div>
+            ) : (
+              <input
+                className="input"
+                type="file"
+                accept="image/*"
+                onChange={handleImagemChange}
+                placeholder="Selecione uma imagem"
+              />
+            )}
+            <small>Máximo 5MB. Formatos aceitos: JPG, PNG, GIF, WebP</small>
           </div>
 
           <div className="form-row">
@@ -229,7 +296,16 @@ export default function CreateDonation() {
             </div>
             <div className="form-group">
               <label>CEP *</label>
-              <input className="input" required value={form.cep} onChange={e => updateForm('cep', e.target.value)} maxLength={8} />
+              <input 
+                className="input" 
+                required 
+                minLength={8} 
+                maxLength={8} 
+                pattern="\d{8}" 
+                title="O CEP deve conter exatamente 8 dígitos" 
+                value={form.cep} 
+                onChange={e => updateForm('cep', e.target.value.replace(/\D/g, ''))} 
+              />
             </div>
           </div>
           <div className="form-row">
@@ -238,8 +314,8 @@ export default function CreateDonation() {
               <input className="input" required value={form.logradouro} onChange={e => updateForm('logradouro', e.target.value)} />
             </div>
             <div className="form-group form-group-sm">
-              <label>Número</label>
-              <input className="input" value={form.numero} onChange={e => updateForm('numero', e.target.value)} />
+              <label>Número *</label>
+              <input className="input" required value={form.numero} onChange={e => updateForm('numero', e.target.value)} />
             </div>
           </div>
           <div className="form-group">
@@ -263,11 +339,11 @@ export default function CreateDonation() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Nome *</label>
-                  <input className="input" value={a.nome} onChange={e => updateAlimento(i, 'nome', e.target.value)} placeholder="Ex: Arroz" />
+                  <input className="input" required value={a.nome} onChange={e => updateAlimento(i, 'nome', e.target.value)} placeholder="Ex: Arroz" />
                 </div>
                 <div className="form-group">
-                  <label>Categoria</label>
-                  <select className="input" value={a.categoria} onChange={e => updateAlimento(i, 'categoria', e.target.value)}>
+                  <label>Categoria *</label>
+                  <select className="input" required value={a.categoria} onChange={e => updateAlimento(i, 'categoria', e.target.value)}>
                     <option value="">-- selecione --</option>
                     {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
@@ -276,23 +352,54 @@ export default function CreateDonation() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Quantidade *</label>
-                  <input className="input" type="number" min="0" step="0.01" value={a.quantidade} onChange={e => updateAlimento(i, 'quantidade', e.target.value)} />
+                  <input className="input" type="number" required min="0" step="0.01" value={a.quantidade} onChange={e => updateAlimento(i, 'quantidade', e.target.value)} />
                 </div>
                 <div className="form-group form-group-sm">
-                  <label>Unidade</label>
-                  <select className="input" value={a.unidade} onChange={e => updateAlimento(i, 'unidade', e.target.value)}>
+                  <label>Unidade *</label>
+                  <select className="input" required value={a.unidade} onChange={e => updateAlimento(i, 'unidade', e.target.value)}>
                     {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Validade</label>
+                  <label>Validade *</label>
                   <input
                     className="input"
                     type="text"
+                    required
+                    pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\d{4}$"
+                    title="Informe uma data válida no formato dd/mm/aaaa"
                     placeholder="dd/mm/aaaa"
                     maxLength={10}
                     value={a.data_validade}
-                    onChange={e => updateAlimento(i, 'data_validade', formatDateInput(e.target.value))}
+                    onChange={e => {
+                      const val = formatDateInput(e.target.value)
+                      updateAlimento(i, 'data_validade', val)
+                      
+                      e.target.setCustomValidity('')
+                      if (val.length === 10) {
+                        const parts = val.split('/')
+                        if (parts.length === 3) {
+                          const [day, month, year] = parts.map(Number)
+                          const date = new Date(year, month - 1, day)
+                          if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+                            e.target.setCustomValidity('Esta data não existe no calendário.')
+                          } else {
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            if (date < today) {
+                              e.target.setCustomValidity('Esta data já expirou.')
+                            }
+                          }
+                        }
+                      }
+                    }}
+                    onInvalid={e => {
+                      if (e.target.validity.valueMissing) {
+                        e.target.setCustomValidity('Preencha a data de validade.')
+                      } else if (e.target.validity.patternMismatch) {
+                        e.target.setCustomValidity('Informe uma data válida no formato dd/mm/aaaa.')
+                      }
+                    }}
                   />
                 </div>
                 {alimentos.length > 1 && (

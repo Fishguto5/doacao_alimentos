@@ -13,6 +13,9 @@ doacao_alimentos_backend.egg-info/
 # Arquivos do banco de dados
 *.sqlite3
 
+# Uploads e arquivos gerados em runtime
+media/
+
 # anotações para rodar comandos como subir front, back, etc
 commands.txt
 prompts.txt

@@ -1,6 +1,13 @@
 const request = async (method, path, body) => {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } }
-  if (body !== undefined) opts.body = JSON.stringify(body)
+  const opts = { method, headers: {} }
+  if (body !== undefined) {
+    if (body instanceof FormData) {
+      opts.body = body
+    } else {
+      opts.headers['Content-Type'] = 'application/json'
+      opts.body = JSON.stringify(body)
+    }
+  }
   const res = await fetch(path, opts)
   if (res.status === 204) return null
   const json = await res.json()
