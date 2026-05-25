@@ -206,3 +206,4 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 * **Controlador de Solicitações**: Trata da reserva e manifestação de interesse em doações.
 * **Controlador de Notificações e Avaliações**: Gerencia o envio de avisos de alteração de status e o sistema de reputação e notas dos usuários.
 
+#### Banco de Dados (PostgreSQL): Ambiente de armazenamento das tabelas relacionais do sistema (usuários, doações, solicitações, notificações, avaliações etc).
