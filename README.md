@@ -167,3 +167,42 @@ chore: [mensagem]
 ## Requirements:
 Python - 3.14.3+
 npm - 10.9.2+
+
+---
+
+# Arquitetura do Sistema
+
+Esta seção descreve a arquitetura do **Doe Alimentos**, baseada nos diagramas C4 (Contexto, Container e Componentes) elaborados para o projeto.
+
+## Diagrama C4
+
+Abaixo estão descritos os principais elementos em cada nível de hierarquia do modelo C4:
+
+### 1. Nível de Contexto
+![Diagrama de Contexto](Diagrama_C4/Contexto.png)
+
+* **Doador/Receptor (Usuário)**: Indivíduo ou instituição que acessa a plataforma para publicar alimentos excedentes ou solicitar doações disponíveis.
+* **Doe Alimentos**: O sistema de software como um todo, que gerencia e conecta doadores e receptores.
+
+### 2. Nível de Containers
+![Diagrama de Container](Diagrama_C4/Container.png)
+
+### 3. Nível de Componentes
+![Diagrama de Componente](Diagrama_C4/Componente.png)
+
+### 3. Nível de Componentes (Componentes)
+
+#### Frontend (React / Vite)
+* **Tela de Registro**: Pagina para preenchimento do cadastro de novos usuários.
+* **Tela de Login**: Ambiente de autenticação do usuário.
+* **Tela Principal/Feed**: Página principal para acesso aos recursos gerais do sistema (listagem de doações, perfil de usuário, cadastro de doação etc.)
+* **Tela Criar Doação**: Tela para cadastro dos itens de doação.
+* **Detalhes da Doação**: Pagina de consulta dos detalhes acerca de uma doação (descrição dos itens e status de doação)
+* **Perfil do Usuário**: Painel do usuário contendo dados cadastrais, histórico, notificações e avaliações.
+
+#### Backend (Django / Django REST Framework)
+* **Controladores de Usuário e Login**: Gerenciam o cadastro de perfis e a autenticação do sistema.
+* **Controlador de Doações**: Ponto de entrada de requisições de listagem e criação de novas categorias de alimentos.
+* **Controlador de Solicitações**: Trata da reserva e manifestação de interesse em doações.
+* **Controlador de Notificações e Avaliações**: Gerencia o envio de avisos de alteração de status e o sistema de reputação e notas dos usuários.
+
