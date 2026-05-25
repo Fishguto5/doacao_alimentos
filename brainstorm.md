@@ -1,6 +1,8 @@
 # Descrição
 A ideia desse documento é armazenar ideias do Brainstorm desenvolvido dentro do projeto. A dinâmica abordada pelo grupo foi de um reunião envolvendo os integrantes que contava com as seguintes etapas:
+
 (1) Geração: Levantamento de ideia diversas e sem muita categoria.
+
 (2) Juntar ideias semelhantes em grupos.
 
 ### Chat entre usuários.
