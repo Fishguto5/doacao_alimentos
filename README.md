@@ -207,3 +207,15 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 * **Controlador de Notificações e Avaliações**: Gerencia o envio de avisos de alteração de status e o sistema de reputação e notas dos usuários.
 
 #### Banco de Dados (PostgreSQL): Ambiente de armazenamento das tabelas relacionais do sistema (usuários, doações, solicitações, notificações, avaliações etc).
+
+
+## Estilos Arquiteturais Adotados
+
+O sistema foi projetado para adotar uma combinação de estilos que visam garantir o desacoplamento, robustez e manutenibilidade:
+
+1. **Cliente-Servidor**: O estilo arquitetural adotado permite a separação de responsabilidades entre o Frontend (desenvolvido em React, focado na interface e interação do usuário) e o Backend (construído como uma Django REST API, responsável pelas regras de negócio, validação e persistência de dados). Os dois módulos atuam de forma independente integrando-se através do protocolo HTTP, trocando mensagens no formato JSON. Dessa forma, o desacoplamento possibilita a praticidade no desenvolvimento paralelo, escalabilidade, reusabilidade de código e manutenibilidade do sistema.
+
+3. **Arquitetura em Camadas (Layered Architecture)**: O Backend, desenvolvido em Django, organiza-se de maneira modular semelhante a arquiterua característica em camadas de forma:
+   * **Camada de Apresentação (REST/HTTP)**: Controlada pelas `views.py` e `serializers.py` do Django REST Framework (DRF). Atua como a interface de comunicação HTTP, sendo responsável por receber as requisições, rotear chamadas, serializar os dados (JSON) e garantir a validação sintática.
+   * **Camada de Negócio (Services)**: Módulo dedicado as regras de negócio da aplicação. Essa separação permite que a lógica central do aplicativo de doações seja independente da interface web ou do banco de dados.
+   * **Camada de Acesso a Dados (Persistence/ORM)**: Corresponde a camada de acesso ao banco de dados (PostgreSQL) por meio do ORM do Django, possibilitando a ponte de comunicação para a tradução dos objetos do sistema em estruturas relacionais.
