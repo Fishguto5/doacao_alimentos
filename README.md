@@ -226,5 +226,6 @@ O sistema foi projetado para adotar uma combinação de estilos que visam garant
    #### **Controller (Controlador)**
    O **Controller** recebem as requisições HTTP do frontend, executam operações através dos componentes controladores, services e views, processando as requisições, atuando como intermediário entre Model e View. O Controllers funcionam como administradores traduzindo requisições HTTP em operações de negócio. Desta forma garante que a lógica HTTP, como o tratamento de erros, status codes e serialização, fique distante da lógica de negócio.
    
+### Padrão de Projeto (State)
+O padrão de projeto State foi adotado no post de doação para representar fase do ciclo de vida de cada doação (disponível, reservada, concluída, expirada, cancelada) como um comportamento distinto. A lógica de transição e as ações permitidas ficam encapsuladas na respectiva classe de estado. Dessa forma evita if/else espalhados no backend, deixando mais claro a função de cada status e facilitando a manutenção de cada fase do ciclo de vida.
 
-   
