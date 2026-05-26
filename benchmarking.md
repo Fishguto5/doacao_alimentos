@@ -45,3 +45,79 @@ Por fim, não foi possível avaliar quanto à interação de recepção de uma d
 - Nenhuma doação disponível, ou seja, poucos usuários ativos.
 - Planos são caros considerando outros serviços oferecidos pela mesma faixa de preço.
 
+## Enjoei:
+
+Consiste em uma plataforma de vendas de roupas de lojas oficiais ou vendedores no estilo OLX. Oferece tanto solução Mobile, quanto uma solução Web. Veja que essa aplicação se diferencia da nossa, pois nós estamos preocupado com a doação de alimentos, enquanto a aplicação está mais relacionada com venda de roupas. Desse modo, desejamos colocar essa aplicação por conta de ser um app conhecido quanto a venda por pessoas dentro do app.
+
+A aplicação oferece uma interface com segmentação bem pensada dentro dos campos de roupas, isto é, já são sugeridos campos para buscas comuns, como por exemplo: "Busca por roupas masculinas" ou "Busca por roupas femininas".
+
+<img src="images/benchmarking_enjoei_frontpage.jpg" alt="frontpage-enjoei" width="500"/>
+
+Além disso, o app possibilita definir a localização através do CEP para encontrar ofertas que estejam próximas a você para diminuição do frete. Veja que é menos interativa que a aplicação anterior, contudo ainda fornece um meio funcional para garantir a localização. Sendo mais prático do que preencher um formulário.
+
+<img src="images/benchmarking_enjoei_location.jpg" alt="frontpage-enjoei" width="500"/>
+
+Também há uma ferramenta que possibilita o vendedor tirar fotos dos seus produtos que a própria ferramenta já oferece um mecanismo para classificar as roupas dentro das ofertas e atribuir labels corretos.
+
+<img src="images/benchmarking_enjoei_vendedor.jpg" alt="frontpage-enjoei" width="500"/>
+
+Além disso, o registro de vendedor deve detalhar mais informações do usuário.
+
+<img src="images/benchmarking_enjoei_seller_info.jpg" alt="frontpage-enjoei" width="500"/>
+
+Assim como oferece um mecanismo para avaliação das lojas e além disso oferece o catálogo de produtos oferecidos por essa loja.
+
+<img src="images/benchmarking_enjoei_store_info.jpg" alt="frontpage-enjoei" width="500"/>
+
+Por fim, a loja oferece uma ferramenta interessante em que são armazenados os posts visitados recentemente:
+
+<img src="images/benchmarking_enjoei_history.jpg" alt="frontpage-enjoei" width="500"/>
+
+### Pontos Positivos:
+
+- Ferramenta que facilita o preenchimento do formulário para novos produtos.
+- Visualização de posts visitados recentemente.
+- Ferramenta de buscas bem segmentada
+
+### Pontos Negativos:
+
+- Concorrência de pequenos vendedores com grandes lojas.
+- Não oferece diretivas para posts de novos produtos.
+
+## Too Good To Go:
+
+Essa ferramenta também é bem parecida com a primeira ferramenta apresentada, a OLIO, contudo é uma ferramenta que parece ser mais utilizada para vendas de refeições que estão próximas do vencimento com descontos. Contudo, tem um foco muito grande dentro dos países europeus.
+
+Como podemos observar na seguinte imagem há bastante adesão dentro dos países europeus e oferece um mapa interativo para definição da localização:
+
+<img src="images/benchmarking_TGTG_register_interactive_map.jpg" alt="interactive-map" width="500"/>
+
+Veja que um problema grande dessa aplicação é não oferecer suporte para regiões da América do Sul.
+
+<img src="images/benchmarking_TGTG_register_region.jpg" alt="region-register" width="500"/>
+
+Uma ferramenta boa dentro desse aplicativo é a possibilidade de estabelecer horários para envio de notificações de ofertas:
+
+<img src="images/benchmarking_TGTG_register_define_preference.jpg" alt="preferences-register" width="500"/>
+
+A frontpage do aplicativo também é muito intuitivo oferecendo opções que são próximas de você e que também podem ser coletadas rapidamente. Nesse sentido, o usuário deve ir buscar o seu produto e não há meios de combinar a entrega. Além disso, não há um canal de reclamação/chat muito evidente dentro do aplicativo.
+
+<img src="images/benchmarking_TGTG_mainpage.jpg" alt="mainpage" width="500"/>
+
+Além disso, o app possui esse esquema de vendas recorrentes pelos estabelecimentos como grandes mercados. Dessa maneira, é possível favoritar alguns produtos:
+
+<img src="images/benchmarking_TGTG_favorites.jpg" alt="TGTG-favorites" width="500"/>
+
+Por fim, o app também possui uma política de incentivo para indicar que amigos participem do aplicativo através da distribuição de cupons por indicação:
+
+<img src="images/benchmarking_TGTG_suggest_to_friends.jpg" alt="TGTG-friends" width="500"/>
+
+### Pontos Positivos:
+
+- Distribuição de Cupons para indicação de amigos
+- Oferecimento de posts baseado na preferência do usuário.
+- Maior exposição de pequenos negócios como padarias e restaurantes.
+
+### Pontos Negativos:
+
+- Nenhum suporte para a região da América do Sul.
