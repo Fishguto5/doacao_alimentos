@@ -163,6 +163,8 @@ export default function DonationDetail({ id }) {
   if (error) return <main className="page"><div className="error-msg">Erro: {error}</div></main>
   if (!doacao) return null
 
+  const VALID_STATUSES = ['disponivel', 'reservada', 'concluida', 'expirada', 'cancelada']
+  const safeStatus = VALID_STATUSES.includes(doacao.status) ? doacao.status : 'disponivel'
   const date = new Date(doacao.data_publicacao).toLocaleDateString('pt-BR')
 
   return (
@@ -195,8 +197,8 @@ export default function DonationDetail({ id }) {
           </div>
 
           <div className="detail-header">
-            <div className="detail-header-row">
-              <span className={`badge badge-${doacao.status}`}>{STATUS_LABELS[doacao.status]}</span>
+              <div className="detail-header-row">
+              <span className={`badge badge-${safeStatus}`}>{STATUS_LABELS[safeStatus] || safeStatus}</span>
               <span className="card-date">Publicado em {date}</span>
             </div>
             <h1 className="detail-title">{doacao.titulo}</h1>

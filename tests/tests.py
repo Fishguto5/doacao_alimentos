@@ -464,3 +464,86 @@ def test_doacao_conclui_apos_voto_de_doador_e_receptor(api_client):
     assert voto_receptor.data["data"]["concluida_por_doador"] is True
     assert voto_receptor.data["data"]["concluida_por_receptor"] is True
     assert voto_receptor.data["data"]["data_conclusao"] is not None
+
+
+@pytest.mark.django_db
+def test_doacao_reserva_apenas_quando_disponivel(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    receptor = _create_usuario(seed, "Receptor")
+
+    create_resp = api_client.post(
+        "/doacao/",
+        data={
+            "doador": doador.id,
+            "receptor": None,
+            "titulo": f"Doacao Reserva {seed}",
+            "descricao": "Teste reserva",
+            "status": "disponivel",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua D",
+            "numero": "40",
+            "complemento": "",
+            "estimativa_peso": "2.00",
+        },
+        format="json",
+    )
+    assert create_resp.status_code == 201
+    doacao_id = create_resp.data["data"]["id"]
+
+    reservar_resp = api_client.patch(
+        "/doacao/",
+        data={
+            "id": doacao_id,
+            "status": "reservada",
+            "receptor": receptor.id,
+        },
+        format="json",
+    )
+    assert reservar_resp.status_code == 200
+    assert reservar_resp.data["data"]["status"] == "reservada"
+    assert reservar_resp.data["data"]["receptor"] == receptor.id
+    assert reservar_resp.data["data"]["data_reserva"] is not None
+
+
+@pytest.mark.django_db
+def test_doacao_nao_pode_ser_reservada_quando_ja_reservada(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    receptor = _create_usuario(seed, "Receptor")
+
+    create_resp = api_client.post(
+        "/doacao/",
+        data={
+            "doador": doador.id,
+            "receptor": receptor.id,
+            "titulo": f"Doacao Reservada {seed}",
+            "descricao": "Teste reserva invalida",
+            "status": "reservada",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua E",
+            "numero": "50",
+            "complemento": "",
+            "estimativa_peso": "3.00",
+        },
+        format="json",
+    )
+    assert create_resp.status_code == 201
+    doacao_id = create_resp.data["data"]["id"]
+
+    reservar_novamente_resp = api_client.patch(
+        "/doacao/",
+        data={
+            "id": doacao_id,
+            "status": "reservada",
+        },
+        format="json",
+    )
+    assert reservar_novamente_resp.status_code == 400
+    assert "status" in reservar_novamente_resp.data
