@@ -391,6 +391,18 @@ select.input { appearance: auto; }
 /* ── Footer ─────────────────────────────────── */
 .footer { background: var(--green-900); color: rgba(255,255,255,0.7); text-align: center; padding: 20px; font-size: 13px; margin-top: auto; }
 
+.status-waiting-msg {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  background: var(--green-50);
+  border: 1px dashed var(--border);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  margin: 0;
+}
+
 /* ── Responsive ─────────────────────────────── */
 @media (max-width: 768px) {
   .detail-layout { grid-template-columns: 1fr; }
