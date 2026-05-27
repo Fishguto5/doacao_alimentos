@@ -211,9 +211,7 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 
 ## Estilos Arquiteturais Adotados
 
-O sistema foi projetado para adotar uma combinação de estilos que visam garantir o desacoplamento, robustez e manutenibilidade:
-
-1. **Cliente-Servidor**: O estilo arquitetural adotado permite a separação de responsabilidades entre o Frontend (desenvolvido em React, focado na interface e interação do usuário) e o Backend (construído como uma Django REST API, responsável pelas regras de negócio, validação e persistência de dados). Os dois módulos atuam de forma independente integrando-se através do protocolo HTTP, trocando mensagens no formato JSON. Dessa forma, o desacoplamento possibilita a praticidade no desenvolvimento paralelo, escalabilidade, reusabilidade de código e manutenibilidade do sistema.
+1. **Cliente-Servidor**: O estilo arquitetural adotado permite a separação de responsabilidades entre o Frontend (ReactJS), focado na interface e interação do usuário, e o Backend, construído como uma Django REST API responsável pelas regras de negócio, validação e persistência de dados. Os dois módulos atuam de forma independente integrando-se através do protocolo HTTP, trocando mensagens no formato JSON. Dessa forma, o desacoplamento possibilita a praticidade no desenvolvimento paralelo, escalabilidade, reusabilidade de código e manutenibilidade do sistema.
 
 3. **Padrão Model-View-Controller (MVC)**: Além do modelo Cliente-Servidor, o sistema foi projetado seguindo o padrão MVC (Model, View e Controller). A separação definida por esse padrão segmenta as responsabilidades, facilitando a manutenção, a evolução e os testes do sistema, o que permite um desenvolvimento modular e independente.
 
