@@ -1,4 +1,4 @@
-const request = async (method, path, body) => {
+const request = async (method, path, body, params) => {
   const opts = { method, headers: {} }
   if (body !== undefined) {
     if (body instanceof FormData) {
@@ -8,7 +8,13 @@ const request = async (method, path, body) => {
       opts.body = JSON.stringify(body)
     }
   }
-  const res = await fetch(path, opts)
+  const searchParams = params
+    ? new URLSearchParams(
+        Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+      ).toString()
+    : ''
+  const url = searchParams ? `${path}?${searchParams}` : path
+  const res = await fetch(url, opts)
   if (res.status === 204) return null
   const json = await res.json()
   if (!res.ok) {
@@ -26,7 +32,7 @@ export const api = {
   updateUsuario: (data) => request('PATCH', '/usuario/', data),
 
   // Doacao
-  getDoacoes: () => request('GET', '/doacao/'),
+  getDoacoes: (params) => request('GET', '/doacao/', undefined, params),
   getDoacao: (id) => request('GET', `/doacao/${id}/`),
   createDoacao: (data) => request('POST', '/doacao/', data),
   updateDoacao: (data) => request('PATCH', '/doacao/', data),
