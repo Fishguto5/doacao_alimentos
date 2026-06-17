@@ -540,6 +540,9 @@ def view_categoria(request):
 def view_doacao(request):
     if request.method == "GET":
         doacao_obj = Doacao.objects.all()
+        categoria_id = request.query_params.get("categoria")
+        if categoria_id:
+            doacao_obj = doacao_obj.filter(alimentos__categoria_id=categoria_id).distinct()
         serializer = DoacaoSerializer(doacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},

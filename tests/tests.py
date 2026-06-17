@@ -547,3 +547,96 @@ def test_doacao_nao_pode_ser_reservada_quando_ja_reservada(api_client):
     )
     assert reservar_novamente_resp.status_code == 400
     assert "status" in reservar_novamente_resp.data
+
+
+@pytest.mark.django_db
+def test_listagem_de_doacoes_pode_filtrar_por_categoria(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    categoria_frutas = Categoria.objects.create(nome=f"Frutas {seed}")
+    categoria_legumes = Categoria.objects.create(nome=f"Legumes {seed}")
+
+    doacao_frutas = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Frutas {seed}",
+        descricao="Doacao com frutas",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua F",
+        numero="10",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+    doacao_mista = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Mista {seed}",
+        descricao="Doacao com itens de categorias diferentes",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua M",
+        numero="20",
+        complemento="",
+        estimativa_peso="3.00",
+    )
+    doacao_legumes = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Legumes {seed}",
+        descricao="Doacao com legumes",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua L",
+        numero="30",
+        complemento="",
+        estimativa_peso="4.00",
+    )
+
+    Alimento.objects.create(
+        categoria=categoria_frutas,
+        doacao=doacao_frutas,
+        nome=f"Banana {seed}",
+        data_validade="2026-12-10",
+        quantidade="1.00",
+        unidade="kg",
+    )
+    Alimento.objects.create(
+        categoria=categoria_frutas,
+        doacao=doacao_mista,
+        nome=f"Maca {seed}",
+        data_validade="2026-12-11",
+        quantidade="1.00",
+        unidade="kg",
+    )
+    Alimento.objects.create(
+        categoria=categoria_frutas,
+        doacao=doacao_mista,
+        nome=f"Uva {seed}",
+        data_validade="2026-12-12",
+        quantidade="1.00",
+        unidade="kg",
+    )
+    Alimento.objects.create(
+        categoria=categoria_legumes,
+        doacao=doacao_legumes,
+        nome=f"Cenoura {seed}",
+        data_validade="2026-12-13",
+        quantidade="1.00",
+        unidade="kg",
+    )
+
+    response = api_client.get(f"/doacao/?categoria={categoria_frutas.id}", format="json")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.data["data"]}
+    assert ids == {doacao_frutas.id, doacao_mista.id}

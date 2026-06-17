@@ -7,17 +7,27 @@ import { navigate } from '../router'
 export default function Home() {
   const { user } = useUser()
   const [doacoes, setDoacoes] = useState([])
+  const [categorias, setCategorias] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [cidadeFiltro, setCidadeFiltro] = useState('')
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
+  const [categoriaFiltro, setCategoriaFiltro] = useState('')
 
   useEffect(() => {
-    api.getDoacoes()
+    api.getCategorias()
+      .then(data => setCategorias(data))
+      .catch(() => setCategorias([]))
+  }, [])
+
+  useEffect(() => {
+    setLoading(true)
+    setError('')
+    api.getDoacoes(categoriaFiltro ? { categoria: categoriaFiltro } : undefined)
       .then(data => { setDoacoes(data); setLoading(false) })
       .catch(e => { setError(e.message); setLoading(false) })
-  }, [])
+  }, [categoriaFiltro])
 
   const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
 
@@ -76,6 +86,15 @@ export default function Home() {
             <option value="concluida">Concluída</option>
             <option value="expirada">Expirada</option>
             <option value="cancelada">Cancelada</option>
+          </select>
+          <select
+            className="input"
+            value={categoriaFiltro}
+            onChange={e => setCategoriaFiltro(e.target.value)}
+            aria-label="Filtro por categoria de alimento"
+          >
+            <option value="">Todas as categorias</option>
+            {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
           <select className="input" value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
             <option value="">Todas as cidades</option>
