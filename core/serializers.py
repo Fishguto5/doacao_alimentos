@@ -12,7 +12,13 @@ from core.models import (
     SolicitacaoDoacao,
     Usuario,
 )
-from core.services import recompute_doacao_expiracao, registrar_voto_conclusao
+from core.services import recompute_doacao_expiracao
+from core.state_machine import (
+    cancelar_doacao,
+    concluir_doacao,
+    expirar_doacao,
+    reservar_doacao,
+)
 
 # serializer irá transformar os dados de uma "forma" para outra.
 # Por exemplo, de um modelo de banco para um json.
@@ -77,21 +83,28 @@ class DoacaoSerializer(serializers.ModelSerializer):
         validated_data.pop("concluida_por_doador", None)
         validated_data.pop("concluida_por_receptor", None)
 
-        if status == DoacaoStatus.RESERVADA:
-            validated_data.setdefault("data_reserva", instance.data_reserva)
-            validated_data["concluida_por_doador"] = False
-            validated_data["concluida_por_receptor"] = False
-            validated_data["data_conclusao"] = None
+        if status in {
+            DoacaoStatus.RESERVADA,
+            DoacaoStatus.CONCLUIDA,
+            DoacaoStatus.CANCELADA,
+            DoacaoStatus.EXPIRADA,
+        }:
+            validated_data.pop("status", None)
 
         if status == DoacaoStatus.CONCLUIDA:
-            # A transicao para concluida depende da votacao bilateral.
-            validated_data.pop("status", None)
+            # A transição para concluída depende da votação bilateral.
             validated_data.pop("data_conclusao", None)
 
         doacao = super().update(instance, validated_data)
 
-        if status == DoacaoStatus.CONCLUIDA:
-            doacao = registrar_voto_conclusao(doacao, confirmacao_usuario_id)
+        if status == DoacaoStatus.RESERVADA:
+            doacao = reservar_doacao(doacao, receptor_id=validated_data.get("receptor"))
+        elif status == DoacaoStatus.CONCLUIDA:
+            doacao = concluir_doacao(doacao, confirmacao_usuario_id)
+        elif status == DoacaoStatus.CANCELADA:
+            doacao = cancelar_doacao(doacao)
+        elif status == DoacaoStatus.EXPIRADA:
+            doacao = expirar_doacao(doacao)
 
         return doacao
 

@@ -9,7 +9,9 @@ const STATUS_LABELS = {
 }
 
 export default function DonationCard({ doacao }) {
-  const statusClass = `badge badge-${doacao.status}`
+  const VALID_STATUSES = ['disponivel', 'reservada', 'concluida', 'expirada', 'cancelada']
+  const status = VALID_STATUSES.includes(doacao.status) ? doacao.status : 'disponivel'
+  const statusClass = `badge badge-${status}`
   const date = new Date(doacao.data_publicacao).toLocaleDateString('pt-BR')
 
   return (
@@ -22,7 +24,7 @@ export default function DonationCard({ doacao }) {
     >
       <div className="card-body">
         <div className="card-header-row">
-          <span className={statusClass}>{STATUS_LABELS[doacao.status] || doacao.status}</span>
+          <span className={statusClass}>{STATUS_LABELS[status] || status}</span>
           <span className="card-date">{date}</span>
         </div>
         <h3 className="card-title">{doacao.titulo}</h3>

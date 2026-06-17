@@ -111,16 +111,16 @@ button { cursor: pointer; font-family: inherit; font-size: inherit; border: none
   font-size: 12px; font-weight: 600; white-space: nowrap;
 }
 .badge-disponivel  { background: #d1fae5; color: #065f46; }
-.badge-reservada   { background: #fef3c7; color: #92400e; }
-.badge-concluida   { background: #dbeafe; color: #1e40af; }
-.badge-expirada    { background: var(--gray-200); color: var(--gray-600); }
-.badge-cancelada   { background: var(--red-light); color: #991b1b; }
+.badge-reservada   { background: #fed7aa; color: #9a3412; }
+.badge-concluida   { background: #2b2b2b; color: #ffffff; }
+.badge-expirada    { background: #f3f4f6; color: #6b7280; }
+.badge-cancelada   { background: #fee2e2; color: #991b1b; }
 .badge-sol-pendente  { background: #fef3c7; color: #92400e; }
 .badge-sol-aceita    { background: #d1fae5; color: #065f46; }
 .badge-sol-recusada  { background: var(--red-light); color: #991b1b; }
 .badge-sol-cancelada { background: var(--gray-200); color: var(--gray-600); }
-/* notification count badge */
-span.badge { background: var(--red); color: white; padding: 1px 6px; font-size: 11px; }
+/* notification count badge - only for non-status badges */
+.badge.notif { background: var(--red); color: white; padding: 1px 6px; font-size: 11px; }
 
 /* ── Buttons ────────────────────────────────── */
 .btn-primary {
@@ -390,6 +390,18 @@ select.input { appearance: auto; }
 
 /* ── Footer ─────────────────────────────────── */
 .footer { background: var(--green-900); color: rgba(255,255,255,0.7); text-align: center; padding: 20px; font-size: 13px; margin-top: auto; }
+
+.status-waiting-msg {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  background: var(--green-50);
+  border: 1px dashed var(--border);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  margin: 0;
+}
 
 /* ── Responsive ─────────────────────────────── */
 @media (max-width: 768px) {

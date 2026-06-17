@@ -167,3 +167,63 @@ chore: [mensagem]
 ## Requirements:
 Python - 3.14.3+
 npm - 10.9.2+
+
+---
+
+# Arquitetura do Sistema
+
+Esta seção descreve a arquitetura do **Doe Alimentos**, baseada nos diagramas C4 (Contexto, Container e Componentes) elaborados para o projeto.
+
+## Diagrama C4
+
+Abaixo estão descritos os principais elementos em cada nível de hierarquia do modelo C4:
+
+### 1. Nível de Contexto
+![Diagrama de Contexto](Diagrama_C4/Contexto.png)
+
+* **Doador/Receptor (Usuário)**: Indivíduo ou instituição que acessa a plataforma para publicar alimentos excedentes ou solicitar doações disponíveis.
+* **Doe Alimentos**: O sistema de software como um todo, que gerencia e conecta doadores e receptores.
+
+### 2. Nível de Containers
+![Diagrama de Container](Diagrama_C4/Container.png)
+
+### 3. Nível de Componentes
+![Diagrama de Componente](Diagrama_C4/Componente.png)
+
+### 3. Nível de Componentes (Componentes)
+
+#### Frontend (React / Vite)
+* **Tela de Registro**: Pagina para preenchimento do cadastro de novos usuários.
+* **Tela de Login**: Ambiente de autenticação do usuário.
+* **Tela Principal/Feed**: Página principal para acesso aos recursos gerais do sistema (listagem de doações, perfil de usuário, cadastro de doação etc.)
+* **Tela Criar Doação**: Tela para cadastro dos itens de doação.
+* **Detalhes da Doação**: Pagina de consulta dos detalhes acerca de uma doação (descrição dos itens e status de doação)
+* **Perfil do Usuário**: Painel do usuário contendo dados cadastrais, histórico, notificações e avaliações.
+
+#### Backend (Django / Django REST Framework)
+* **Controladores de Usuário e Login**: Gerenciam o cadastro de perfis e a autenticação do sistema.
+* **Controlador de Doações**: Ponto de entrada de requisições de listagem e criação de novas categorias de alimentos.
+* **Controlador de Solicitações**: Trata da reserva e manifestação de interesse em doações.
+* **Controlador de Notificações e Avaliações**: Gerencia o envio de avisos de alteração de status e o sistema de reputação e notas dos usuários.
+
+#### Banco de Dados (PostgreSQL): Ambiente de armazenamento das tabelas relacionais do sistema (usuários, doações, solicitações, notificações, avaliações etc).
+
+
+## Estilos Arquiteturais Adotados
+
+1. **Cliente-Servidor**: O estilo arquitetural adotado permite a separação de responsabilidades entre o Frontend (ReactJS), focado na interface e interação do usuário, e o Backend, construído como uma Django REST API responsável pelas regras de negócio, validação e persistência de dados. Os dois módulos atuam de forma independente integrando-se através do protocolo HTTP, trocando mensagens no formato JSON. Dessa forma, o desacoplamento possibilita a praticidade no desenvolvimento paralelo, escalabilidade, reusabilidade de código e manutenibilidade do sistema.
+
+3. **Padrão Model-View-Controller (MVC)**: Além do modelo Cliente-Servidor, o sistema foi projetado seguindo o padrão MVC (Model, View e Controller). A separação definida por esse padrão segmenta as responsabilidades, facilitando a manutenção, a evolução e os testes do sistema, o que permite um desenvolvimento modular e independente.
+
+   #### **Model (Modelo)**
+   O **Model** representa os dados e as regras de negócio associadas ao sistema. No projeto, ele é representado pelo banco de dados, componentes de lógica de negócio e models (que definem as estruturas de dados da aplicação e possibilitam a comunicação com o banco). O isolamento do Model permite que a parte de decisões lógicas seja mantida independente da interface, facilitando a manutenção e a evolução do sistema.
+
+   #### **View (Visão)**
+   A **View**, representada pelo frontend, é responsável pela apresentação gráfica dos dados ao usuário. Desenvolvida com ReactJS, ela se comunica com o backend por meio de requisições HTTPS/JSON. A segmentação do modelo permite que o frontend seja remodelado ou, até mesmo, substituído por outra tecnologia, sem que isso interfira nas regras de negócio da aplicação.
+
+   #### **Controller (Controlador)**
+   O **Controller** recebem as requisições HTTP do frontend, executam operações através dos componentes controladores, services e views, processando as requisições, atuando como intermediário entre Model e View. O Controllers funcionam como administradores traduzindo requisições HTTP em operações de negócio. Desta forma garante que a lógica HTTP, como o tratamento de erros, status codes e serialização, fique distante da lógica de negócio.
+   
+### Padrão de Projeto (State)
+O padrão de projeto State foi adotado no post de doação para representar fase do ciclo de vida de cada doação (disponível, reservada, concluída, expirada, cancelada) como um comportamento distinto. A lógica de transição e as ações permitidas ficam encapsuladas na respectiva classe de estado. Dessa forma evita if/else espalhados no backend, deixando mais claro a função de cada status e facilitando a manutenção de cada fase do ciclo de vida.
+

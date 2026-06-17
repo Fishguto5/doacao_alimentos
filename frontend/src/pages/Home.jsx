@@ -22,7 +22,9 @@ export default function Home() {
   const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
 
   const filtradas = doacoes.filter(d => {
-    if (statusFiltro && d.status !== statusFiltro) return false
+    const VALID_STATUSES = ['disponivel', 'reservada', 'concluida', 'expirada', 'cancelada']
+    const status = VALID_STATUSES.includes(d.status) ? d.status : 'disponivel'
+    if (statusFiltro && status !== statusFiltro) return false
     if (cidadeFiltro && d.cidade !== cidadeFiltro) return false
     if (search) {
       const q = search.toLowerCase()
