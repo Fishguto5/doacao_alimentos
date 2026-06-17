@@ -22,11 +22,29 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    setLoading(true)
-    setError('')
-    api.getDoacoes(categoriaFiltro ? { categoria: categoriaFiltro } : undefined)
-      .then(data => { setDoacoes(data); setLoading(false) })
-      .catch(e => { setError(e.message); setLoading(false) })
+    let active = true
+
+    async function loadDoacoes() {
+      setLoading(true)
+      setError('')
+
+      try {
+        const data = await api.getDoacoes(categoriaFiltro ? { categoria: categoriaFiltro } : undefined)
+        if (!active) return
+        setDoacoes(data)
+      } catch (e) {
+        if (!active) return
+        setError(e.message)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    loadDoacoes()
+
+    return () => {
+      active = false
+    }
   }, [categoriaFiltro])
 
   const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
