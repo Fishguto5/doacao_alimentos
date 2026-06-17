@@ -1,6 +1,61 @@
 # CHANGELOG
 
 
+## v0.3.0 (2026-06-17)
+
+### Bug Fixes
+
+- Correção de bugs na conclusão do post.
+  ([`8c62811`](https://github.com/mc656-1s2026/doacao_alimentos/commit/8c628113913e1668db06830935a929d00dac85f0))
+
+### Documentation
+
+- Adicionando a descrição da arquitetura do sistema closes #53, closes #51
+  ([`12d7870`](https://github.com/mc656-1s2026/doacao_alimentos/commit/12d7870fedc6cb68061de1981f637363b2ff9ad1))
+
+- Adicionar novos exemplos dentro do benchmarking
+  ([`0180581`](https://github.com/mc656-1s2026/doacao_alimentos/commit/01805815ef393f26bd019d21952c1ab639581100))
+
+- Atualização da decisão de arquitetura MVC
+  ([`9e6d5ac`](https://github.com/mc656-1s2026/doacao_alimentos/commit/9e6d5ac647af45948340993724254bab50c4efb2))
+
+- Atualização da documentação de arquitetura (container - banco de dados)
+  ([`44c86ea`](https://github.com/mc656-1s2026/doacao_alimentos/commit/44c86ea59f9ad1c79a6cedf2f97f428af8604579))
+
+- Atualização da documentação para o padrão de projetos
+  ([`56736c0`](https://github.com/mc656-1s2026/doacao_alimentos/commit/56736c06c4d4f204c1503e4a7de6bbf04bdcb906))
+
+- Atualização do README para adicionar o diagrama C4.
+  ([`425c8c8`](https://github.com/mc656-1s2026/doacao_alimentos/commit/425c8c8cd6e0bbde1d5c3380d0691179308cf0f4))
+
+- Benchmarking
+  ([`5598315`](https://github.com/mc656-1s2026/doacao_alimentos/commit/5598315a7dbe8e6e937edfd6d4f819c3f6ad6822))
+
+- Centralize images
+  ([`21e2995`](https://github.com/mc656-1s2026/doacao_alimentos/commit/21e29951b293829298dca0f9b1a1b5e554e7e8ae))
+
+- Correção da arquitetura read.me
+  ([`9bb0ce4`](https://github.com/mc656-1s2026/doacao_alimentos/commit/9bb0ce479796037ea56de42129dfaa9ced1e12bf))
+
+- Correção extremamente pequena no brainstorm
+  ([`0a33584`](https://github.com/mc656-1s2026/doacao_alimentos/commit/0a3358433c6f94a7eb67194068562a8061110584))
+
+- Fix benchmarking size for images
+  ([`f0433c1`](https://github.com/mc656-1s2026/doacao_alimentos/commit/f0433c186f1372e1fdebbdd0c1aa2f5940f2fba2))
+
+- Fix images size
+  ([`694ffd2`](https://github.com/mc656-1s2026/doacao_alimentos/commit/694ffd235dd28815619dd357383a575ae179201b))
+
+- Versão mais refinada do brainstorm
+  ([`cc57278`](https://github.com/mc656-1s2026/doacao_alimentos/commit/cc57278f3919504bf1681420f2d8d7ee05174c2b))
+
+### Features
+
+- Executada implementação do padrão de projeto state os ciclo de vida do post de doacao. Correção de
+  alguns bugs visuais da aplicação.
+  ([`1108142`](https://github.com/mc656-1s2026/doacao_alimentos/commit/1108142a3732507892035b51ef90badc7f69905b))
+
+
 ## v0.2.0 (2026-05-19)
 
 ### Bug Fixes
