@@ -14,6 +14,7 @@ export default function Home() {
   const [cidadeFiltro, setCidadeFiltro] = useState('')
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
+  const [pesoMaxFiltro, setPesoMaxFiltro] = useState('')
 
   useEffect(() => {
     api.getCategorias()
@@ -29,7 +30,11 @@ export default function Home() {
       setError('')
 
       try {
-        const data = await api.getDoacoes(categoriaFiltro ? { categoria: categoriaFiltro } : undefined)
+        const filtrosServidor = {}
+        if (categoriaFiltro) filtrosServidor.categoria = categoriaFiltro
+        if (pesoMaxFiltro) filtrosServidor.peso_max = pesoMaxFiltro
+
+        const data = await api.getDoacoes(Object.keys(filtrosServidor).length ? filtrosServidor : undefined)
         if (!active) return
         setDoacoes(data)
       } catch (e) {
@@ -45,7 +50,7 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [categoriaFiltro])
+  }, [categoriaFiltro, pesoMaxFiltro])
 
   const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
 
@@ -118,6 +123,16 @@ export default function Home() {
             <option value="">Todas as cidades</option>
             {cidades.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+          <input
+            className="input"
+            type="number"
+            min="0"
+            step="0.1"
+            value={pesoMaxFiltro}
+            onChange={e => setPesoMaxFiltro(e.target.value)}
+            placeholder="Peso máximo (kg)"
+            aria-label="Filtro por peso máximo da doação"
+          />
         </div>
         <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
       </section>

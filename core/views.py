@@ -543,6 +543,13 @@ def view_doacao(request):
         categoria_id = request.query_params.get("categoria")
         if categoria_id:
             doacao_obj = doacao_obj.filter(alimentos__categoria_id=categoria_id).distinct()
+
+        peso_max = request.query_params.get("peso_max")
+        if peso_max:
+            doacao_obj = doacao_obj.filter(
+                estimativa_peso__isnull=False,
+                estimativa_peso__lte=peso_max,
+            )
         serializer = DoacaoSerializer(doacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},
