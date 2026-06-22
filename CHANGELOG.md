@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.3.1 (2026-06-22)
+
+### Bug Fixes
+
+- Adiciona filtro por peso maximo
+  ([`7aed721`](https://github.com/mc656-1s2026/doacao_alimentos/commit/7aed721e2306f86602e615d67d75cfc60cb0234a))
+
+- Fixing ruff error
+  ([`f9e9e23`](https://github.com/mc656-1s2026/doacao_alimentos/commit/f9e9e23ebeaf47604cd656278a8c8a6426438f65))
+
+### Chores
+
+- Atualização arquitetural no README
+  ([`4a0b71e`](https://github.com/mc656-1s2026/doacao_alimentos/commit/4a0b71efeceaa8eb1d5c07bfa88c06fabefd8f1b))
+
+Correção arquitetural do projeto, removendo a descrição em MVC para arquitetura em camadas, buscando
+  um estilo arquitetural compatível com a aplicação.
+
+
 ## v0.3.0 (2026-06-17)
 
 ### Bug Fixes
