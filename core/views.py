@@ -13,6 +13,7 @@ from core.models import (
     Avaliacao,
     Categoria,
     Doacao,
+    DoacaoStatus,
     Notificacao,
     Person,
     SolicitacaoDoacao,
@@ -543,6 +544,22 @@ def view_doacao(request):
         categoria_id = request.query_params.get("categoria")
         if categoria_id:
             doacao_obj = doacao_obj.filter(alimentos__categoria_id=categoria_id).distinct()
+
+        status_filtro = request.query_params.get("status")
+        if status_filtro:
+            valores_validos = DoacaoStatus.values
+            if status_filtro not in valores_validos:
+                return Response(
+                    {
+                        "msg": (
+                            f"Status invalido: '{status_filtro}'. "
+                            f"Valores aceitos: {', '.join(valores_validos)}."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            doacao_obj = doacao_obj.filter(status=status_filtro)
+
         serializer = DoacaoSerializer(doacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},

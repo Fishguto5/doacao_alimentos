@@ -640,3 +640,75 @@ def test_listagem_de_doacoes_pode_filtrar_por_categoria(api_client):
     assert response.status_code == 200
     ids = {item["id"] for item in response.data["data"]}
     assert ids == {doacao_frutas.id, doacao_mista.id}
+
+
+@pytest.mark.django_db
+def test_listagem_de_doacoes_pode_filtrar_por_status(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    doacao_disponivel = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Disponivel {seed}",
+        descricao="Doacao ainda disponivel",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua D",
+        numero="10",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+    doacao_reservada = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Reservada {seed}",
+        descricao="Doacao ja reservada",
+        status="reservada",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua R",
+        numero="20",
+        complemento="",
+        estimativa_peso="3.00",
+    )
+    Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Cancelada {seed}",
+        descricao="Doacao cancelada",
+        status="cancelada",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua C",
+        numero="30",
+        complemento="",
+        estimativa_peso="4.00",
+    )
+
+    response = api_client.get("/doacao/?status=disponivel", format="json")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.data["data"]}
+    assert ids == {doacao_disponivel.id}
+
+    response_reservada = api_client.get("/doacao/?status=reservada", format="json")
+
+    assert response_reservada.status_code == 200
+    ids_reservada = {item["id"] for item in response_reservada.data["data"]}
+    assert ids_reservada == {doacao_reservada.id}
+
+
+@pytest.mark.django_db
+def test_listagem_de_doacoes_rejeita_status_invalido(api_client):
+    response = api_client.get("/doacao/?status=nao_existe", format="json")
+
+    assert response.status_code == 400
+    assert "msg" in response.data

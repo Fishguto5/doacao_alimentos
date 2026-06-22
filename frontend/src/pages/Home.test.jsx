@@ -73,17 +73,46 @@ describe('Home', () => {
 
     expect(api.getCategorias).toHaveBeenCalledTimes(1)
     await screen.findByText('Doacao Frutas')
-    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, undefined)
+    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
 
     fireEvent.change(screen.getByLabelText('Filtro por categoria de alimento'), {
       target: { value: '2' },
     })
 
     await waitFor(() => {
-      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { categoria: '2' })
+      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { categoria: '2', status: 'disponivel' })
     })
 
     expect(await screen.findByText('Doacao Legumes')).toBeInTheDocument()
     expect(screen.queryByText('Doacao Frutas')).not.toBeInTheDocument()
+  })
+
+  it('recarrega as doações ao filtrar por status', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
+
+    fireEvent.change(screen.getByDisplayValue('Disponível'), {
+      target: { value: 'reservada' },
+    })
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { status: 'reservada' })
+    })
+  })
+
+  it('envia a requisição sem filtro de status quando "Todos os status" é selecionado', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+
+    fireEvent.change(screen.getByDisplayValue('Disponível'), {
+      target: { value: '' },
+    })
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, undefined)
+    })
   })
 })

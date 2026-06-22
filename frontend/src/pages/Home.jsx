@@ -29,7 +29,10 @@ export default function Home() {
       setError('')
 
       try {
-        const data = await api.getDoacoes(categoriaFiltro ? { categoria: categoriaFiltro } : undefined)
+        const params = {}
+        if (categoriaFiltro) params.categoria = categoriaFiltro
+        if (statusFiltro) params.status = statusFiltro
+        const data = await api.getDoacoes(Object.keys(params).length ? params : undefined)
         if (!active) return
         setDoacoes(data)
       } catch (e) {
@@ -45,14 +48,11 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [categoriaFiltro])
+  }, [categoriaFiltro, statusFiltro])
 
   const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
 
   const filtradas = doacoes.filter(d => {
-    const VALID_STATUSES = ['disponivel', 'reservada', 'concluida', 'expirada', 'cancelada']
-    const status = VALID_STATUSES.includes(d.status) ? d.status : 'disponivel'
-    if (statusFiltro && status !== statusFiltro) return false
     if (cidadeFiltro && d.cidade !== cidadeFiltro) return false
     if (search) {
       const q = search.toLowerCase()
