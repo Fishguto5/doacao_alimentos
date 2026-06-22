@@ -560,7 +560,6 @@ def view_doacao(request):
                 )
             doacao_obj = doacao_obj.filter(status=status_filtro)
 
-
         peso_max = request.query_params.get("peso_max")
         if peso_max:
             doacao_obj = doacao_obj.filter(
