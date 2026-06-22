@@ -712,3 +712,61 @@ def test_listagem_de_doacoes_rejeita_status_invalido(api_client):
 
     assert response.status_code == 400
     assert "msg" in response.data
+
+
+@pytest.mark.django_db
+def test_listagem_de_doacoes_pode_filtrar_por_peso_maximo(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    doacao_leve = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Leve {seed}",
+        descricao="Doacao com peso baixo",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua P",
+        numero="40",
+        complemento="",
+        estimativa_peso="4.50",
+    )
+    doacao_media = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Media {seed}",
+        descricao="Doacao com peso intermediario",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua Q",
+        numero="50",
+        complemento="",
+        estimativa_peso="9.00",
+    )
+    doacao_pesada = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Pesada {seed}",
+        descricao="Doacao com peso alto",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua R",
+        numero="60",
+        complemento="",
+        estimativa_peso="14.00",
+    )
+
+    response = api_client.get("/doacao/?peso_max=15", format="json")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.data["data"]}
+    assert ids == {doacao_leve.id, doacao_media.id, doacao_pesada.id}

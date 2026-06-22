@@ -213,16 +213,10 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 
 1. **Cliente-Servidor**: O estilo arquitetural adotado permite a separação de responsabilidades entre o Frontend (ReactJS), focado na interface e interação do usuário, e o Backend, construído como uma Django REST API responsável pelas regras de negócio, validação e persistência de dados. Os dois módulos atuam de forma independente integrando-se através do protocolo HTTP, trocando mensagens no formato JSON. Dessa forma, o desacoplamento possibilita a praticidade no desenvolvimento paralelo, escalabilidade, reusabilidade de código e manutenibilidade do sistema.
 
-3. **Padrão Model-View-Controller (MVC)**: Além do modelo Cliente-Servidor, o sistema foi projetado seguindo o padrão MVC (Model, View e Controller). A separação definida por esse padrão segmenta as responsabilidades, facilitando a manutenção, a evolução e os testes do sistema, o que permite um desenvolvimento modular e independente.
-
-   #### **Model (Modelo)**
-   O **Model** representa os dados e as regras de negócio associadas ao sistema. No projeto, ele é representado pelo banco de dados, componentes de lógica de negócio e models (que definem as estruturas de dados da aplicação e possibilitam a comunicação com o banco). O isolamento do Model permite que a parte de decisões lógicas seja mantida independente da interface, facilitando a manutenção e a evolução do sistema.
-
-   #### **View (Visão)**
-   A **View**, representada pelo frontend, é responsável pela apresentação gráfica dos dados ao usuário. Desenvolvida com ReactJS, ela se comunica com o backend por meio de requisições HTTPS/JSON. A segmentação do modelo permite que o frontend seja remodelado ou, até mesmo, substituído por outra tecnologia, sem que isso interfira nas regras de negócio da aplicação.
-
-   #### **Controller (Controlador)**
-   O **Controller** recebem as requisições HTTP do frontend, executam operações através dos componentes controladores, services e views, processando as requisições, atuando como intermediário entre Model e View. O Controllers funcionam como administradores traduzindo requisições HTTP em operações de negócio. Desta forma garante que a lógica HTTP, como o tratamento de erros, status codes e serialização, fique distante da lógica de negócio.
+2. **Arquitetura em Camadas (Layered Architecture)**: O Backend, desenvolvido em Django, organiza-se de maneira modular semelhante a arquiterua característica em camadas de forma:
+   * **Camada de Apresentação (REST/HTTP)**: Controlada pelas `views.py` e `serializers.py` do Django REST Framework (DRF). Atua como a interface de comunicação HTTP, sendo responsável por receber as requisições, rotear chamadas, serializar os dados (JSON) e garantir a validação sintática.
+   * **Camada de Negócio (Services)**: Módulo dedicado as regras de negócio da aplicação. Essa separação permite que a lógica central do aplicativo de doações seja independente da interface web ou do banco de dados.
+   * **Camada de Acesso a Dados (Persistence/ORM)**: Corresponde a camada de acesso ao banco de dados (PostgreSQL) por meio do ORM do Django, possibilitando a ponte de comunicação para a tradução dos objetos do sistema em estruturas relacionais.
    
 ### Padrão de Projeto (State)
 O padrão de projeto State foi adotado no post de doação para representar fase do ciclo de vida de cada doação (disponível, reservada, concluída, expirada, cancelada) como um comportamento distinto. A lógica de transição e as ações permitidas ficam encapsuladas na respectiva classe de estado. Dessa forma evita if/else espalhados no backend, deixando mais claro a função de cada status e facilitando a manutenção de cada fase do ciclo de vida.

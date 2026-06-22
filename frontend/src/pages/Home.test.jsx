@@ -62,6 +62,19 @@ describe('Home', () => {
         estimativa_peso: '3.00',
       },
     ])
+    api.getDoacoes.mockResolvedValueOnce([
+      {
+        id: 1,
+        titulo: 'Doacao Frutas',
+        descricao: 'Descricao 1',
+        status: 'disponivel',
+        data_publicacao: '2026-06-01T10:00:00Z',
+        cidade: 'Campinas',
+        estado: 'SP',
+        bairro: 'Centro',
+        estimativa_peso: '2.00',
+      },
+    ])
   })
 
   afterEach(() => {
@@ -114,5 +127,22 @@ describe('Home', () => {
     await waitFor(() => {
       expect(api.getDoacoes).toHaveBeenNthCalledWith(2, undefined)
     })
+  })
+
+  it('recarrega as doações ao filtrar por peso máximo', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, undefined)
+
+    fireEvent.change(screen.getByLabelText('Filtro por peso máximo da doação'), {
+      target: { value: '5' },
+    })
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { peso_max: '5' })
+    })
+
+    expect(await screen.findByText('Doacao Frutas')).toBeInTheDocument()
   })
 })
