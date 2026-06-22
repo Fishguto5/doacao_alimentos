@@ -15,6 +15,7 @@ export default function Home() {
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
   const [pesoMaxFiltro, setPesoMaxFiltro] = useState('')
+  const [validadeMinFiltro, setValidadeMinFiltro] = useState('')
 
   useEffect(() => {
     api.getCategorias()
@@ -34,6 +35,7 @@ export default function Home() {
         if (categoriaFiltro) params.categoria = categoriaFiltro
         if (statusFiltro) params.status = statusFiltro
         if (pesoMaxFiltro) params.peso_max = pesoMaxFiltro
+        if (validadeMinFiltro) params.validade_min = validadeMinFiltro
         const data = await api.getDoacoes(Object.keys(params).length ? params : undefined)
         if (!active) return
         setDoacoes(data)
@@ -50,7 +52,7 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro])
+  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro])
 
   const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
 
@@ -129,6 +131,13 @@ export default function Home() {
             onChange={e => setPesoMaxFiltro(e.target.value)}
             placeholder="Peso máximo (kg)"
             aria-label="Filtro por peso máximo da doação"
+          />
+          <input
+            className="input"
+            type="date"
+            value={validadeMinFiltro}
+            onChange={e => setValidadeMinFiltro(e.target.value)}
+            aria-label="Filtro por data de validade mínima"
           />
         </div>
         <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>

@@ -1,3 +1,5 @@
+import datetime
+
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -566,6 +568,26 @@ def view_doacao(request):
                 estimativa_peso__isnull=False,
                 estimativa_peso__lte=peso_max,
             )
+
+        validade_min = request.query_params.get("validade_min")
+        if validade_min:
+            try:
+                data_validade_min = datetime.date.fromisoformat(validade_min)
+            except ValueError:
+                return Response(
+                    {
+                        "msg": (
+                            f"Data invalida: '{validade_min}'. "
+                            "Use o formato YYYY-MM-DD (ex: 2026-12-31)."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            doacao_obj = doacao_obj.filter(
+                expira_em__isnull=False,
+                expira_em__gte=data_validade_min,
+            )
+
         serializer = DoacaoSerializer(doacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},

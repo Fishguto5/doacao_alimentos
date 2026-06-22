@@ -124,4 +124,21 @@ describe('Home', () => {
 
     expect(await screen.findByText('Doacao Legumes')).toBeInTheDocument()
   })
+
+  it('recarrega as doações ao filtrar por data de validade mínima', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
+
+    fireEvent.change(screen.getByLabelText('Filtro por data de validade mínima'), {
+      target: { value: '2027-01-01' },
+    })
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { status: 'disponivel', validade_min: '2027-01-01' })
+    })
+
+    expect(await screen.findByText('Doacao Legumes')).toBeInTheDocument()
+  })
 })
