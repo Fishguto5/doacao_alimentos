@@ -856,3 +856,163 @@ def test_listagem_de_doacoes_rejeita_data_invalida(api_client):
 
     assert response.status_code == 400
     assert "msg" in response.data
+
+
+@pytest.mark.django_db
+def test_listagem_de_cidades_disponiveis(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"D1 {seed}",
+        descricao="",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua A",
+        numero="1",
+        complemento="",
+        estimativa_peso="1.00",
+    )
+    Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"D2 {seed}",
+        descricao="",
+        status="disponivel",
+        cep="01000000",
+        cidade="São Paulo",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="2",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+    Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"D3 {seed}",
+        descricao="",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Barão",
+        logradouro="Rua C",
+        numero="3",
+        complemento="",
+        estimativa_peso="3.00",
+    )
+
+    response = api_client.get("/doacao/cidades/", format="json")
+
+    assert response.status_code == 200
+    assert "Campinas" in response.data["data"]
+    assert "São Paulo" in response.data["data"]
+    assert response.data["data"] == sorted(set(response.data["data"]))
+
+
+@pytest.mark.django_db
+def test_listagem_de_doacoes_pode_filtrar_por_uma_cidade(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    doacao_campinas = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Campinas {seed}",
+        descricao="",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua A",
+        numero="1",
+        complemento="",
+        estimativa_peso="1.00",
+    )
+    Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao SP {seed}",
+        descricao="",
+        status="disponivel",
+        cep="01000000",
+        cidade="São Paulo",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="2",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+
+    response = api_client.get("/doacao/?cidades=Campinas", format="json")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.data["data"]}
+    assert ids == {doacao_campinas.id}
+
+
+@pytest.mark.django_db
+def test_listagem_de_doacoes_pode_filtrar_por_multiplas_cidades(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    doacao_campinas = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao Campinas {seed}",
+        descricao="",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua A",
+        numero="1",
+        complemento="",
+        estimativa_peso="1.00",
+    )
+    doacao_sp = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao SP {seed}",
+        descricao="",
+        status="disponivel",
+        cep="01000000",
+        cidade="São Paulo",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="2",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+    Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doacao RJ {seed}",
+        descricao="",
+        status="disponivel",
+        cep="20000000",
+        cidade="Rio de Janeiro",
+        estado="RJ",
+        bairro="Centro",
+        logradouro="Rua C",
+        numero="3",
+        complemento="",
+        estimativa_peso="3.00",
+    )
+
+    response = api_client.get("/doacao/?cidades=Campinas,São Paulo", format="json")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.data["data"]}
+    assert ids == {doacao_campinas.id, doacao_sp.id}

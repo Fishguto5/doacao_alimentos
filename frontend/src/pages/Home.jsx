@@ -8,10 +8,11 @@ export default function Home() {
   const { user } = useUser()
   const [doacoes, setDoacoes] = useState([])
   const [categorias, setCategorias] = useState([])
+  const [cidades, setCidades] = useState([])
+  const [cidadesSelecionadas, setCidadesSelecionadas] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [cidadeFiltro, setCidadeFiltro] = useState('')
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
   const [pesoMaxFiltro, setPesoMaxFiltro] = useState('')
@@ -22,6 +23,16 @@ export default function Home() {
       .then(data => setCategorias(data))
       .catch(() => setCategorias([]))
   }, [])
+
+  useEffect(() => {
+    api.getCidades()
+      .then(data => setCidades(data))
+      .catch(() => setCidades([]))
+  }, [])
+
+  const cidadesFiltroParam = cidadesSelecionadas.size > 0
+    ? [...cidadesSelecionadas].sort().join(',')
+    : ''
 
   useEffect(() => {
     let active = true
@@ -36,6 +47,7 @@ export default function Home() {
         if (statusFiltro) params.status = statusFiltro
         if (pesoMaxFiltro) params.peso_max = pesoMaxFiltro
         if (validadeMinFiltro) params.validade_min = validadeMinFiltro
+        if (cidadesFiltroParam) params.cidades = cidadesFiltroParam
         const data = await api.getDoacoes(Object.keys(params).length ? params : undefined)
         if (!active) return
         setDoacoes(data)
@@ -52,12 +64,29 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro])
+  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro, cidadesFiltroParam])
 
-  const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
+  const toggleCidade = (cidade) => {
+    setCidadesSelecionadas(prev => {
+      const next = new Set(prev)
+      if (next.has(cidade)) {
+        next.delete(cidade)
+      } else {
+        next.add(cidade)
+      }
+      return next
+    })
+  }
+
+  const selecionarTodasCidades = () => {
+    setCidadesSelecionadas(new Set(cidades))
+  }
+
+  const limparSelecaoCidades = () => {
+    setCidadesSelecionadas(new Set())
+  }
 
   const filtradas = doacoes.filter(d => {
-    if (cidadeFiltro && d.cidade !== cidadeFiltro) return false
     if (search) {
       const q = search.toLowerCase()
       return (
@@ -118,10 +147,6 @@ export default function Home() {
             <option value="">Todas as categorias</option>
             {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
-          <select className="input" value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
-            <option value="">Todas as cidades</option>
-            {cidades.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
           <input
             className="input"
             type="number"
@@ -140,6 +165,41 @@ export default function Home() {
             aria-label="Filtro por data de validade mínima"
           />
         </div>
+
+        {cidades.length > 0 && (
+          <div className="cidades-filtro" aria-label="Filtro por cidade">
+            <div className="cidades-filtro-acoes">
+              <button
+                className="btn-secondary btn-sm"
+                onClick={selecionarTodasCidades}
+                aria-label="Selecionar todas as cidades"
+              >
+                Todas as cidades
+              </button>
+              <button
+                className="btn-secondary btn-sm"
+                onClick={limparSelecaoCidades}
+                aria-label="Limpar seleção de cidades"
+              >
+                Limpar seleção
+              </button>
+            </div>
+            <div className="cidades-lista">
+              {cidades.map(cidade => (
+                <label key={cidade} className="cidade-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={cidadesSelecionadas.has(cidade)}
+                    onChange={() => toggleCidade(cidade)}
+                    aria-label={`Filtrar por ${cidade}`}
+                  />
+                  {cidade}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
       </section>
 

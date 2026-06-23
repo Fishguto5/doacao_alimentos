@@ -34,6 +34,7 @@ export const api = {
   // Doacao
   getDoacoes: (params) => request('GET', '/doacao/', undefined, params),
   getDoacao: (id) => request('GET', `/doacao/${id}/`),
+  getCidades: () => request('GET', '/doacao/cidades/'),
   createDoacao: (data) => request('POST', '/doacao/', data),
   updateDoacao: (data) => request('PATCH', '/doacao/', data),
   deleteDoacao: (id) => request('DELETE', `/doacao/${id}/`),

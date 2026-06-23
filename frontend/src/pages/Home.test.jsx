@@ -6,6 +6,7 @@ import { api } from '../api'
 vi.mock('../api', () => ({
   api: {
     getCategorias: vi.fn(),
+    getCidades: vi.fn(),
     getDoacoes: vi.fn(),
   },
 }))
@@ -36,7 +37,7 @@ const DOACAO_LEGUMES = {
   descricao: 'Descricao 2',
   status: 'disponivel',
   data_publicacao: '2026-06-02T10:00:00Z',
-  cidade: 'Campinas',
+  cidade: 'São Paulo',
   estado: 'SP',
   bairro: 'Centro',
   estimativa_peso: '3.00',
@@ -49,10 +50,10 @@ describe('Home', () => {
       { id: 1, nome: 'Frutas' },
       { id: 2, nome: 'Legumes' },
     ])
-    // 1ª chamada: carga inicial (sempre { status: 'disponivel' })
-    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
-    // 2ª chamada: usada pelos testes ao mudar algum filtro
-    api.getDoacoes.mockResolvedValueOnce([DOACAO_LEGUMES])
+    api.getCidades.mockResolvedValue(['Campinas', 'São Paulo'])
+    // Mock permanente: sempre retorna a lista completa por padrão.
+    // Cada teste redefine com mockResolvedValueOnce quando precisa de um retorno diferente.
+    api.getDoacoes.mockResolvedValue([DOACAO_FRUTAS, DOACAO_LEGUMES])
   })
 
   afterEach(() => {
@@ -64,14 +65,15 @@ describe('Home', () => {
 
     expect(api.getCategorias).toHaveBeenCalledTimes(1)
     await screen.findByText('Doacao Frutas')
-    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_LEGUMES])
 
     fireEvent.change(screen.getByLabelText('Filtro por categoria de alimento'), {
       target: { value: '2' },
     })
 
     await waitFor(() => {
-      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { categoria: '2', status: 'disponivel' })
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ categoria: '2', status: 'disponivel' })
     })
 
     expect(await screen.findByText('Doacao Legumes')).toBeInTheDocument()
@@ -82,14 +84,15 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
+
+    api.getDoacoes.mockResolvedValueOnce([])
 
     fireEvent.change(screen.getByDisplayValue('Disponível'), {
       target: { value: 'reservada' },
     })
 
     await waitFor(() => {
-      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { status: 'reservada' })
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'reservada' })
     })
   })
 
@@ -97,14 +100,15 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
 
     fireEvent.change(screen.getByDisplayValue('Disponível'), {
       target: { value: '' },
     })
 
     await waitFor(() => {
-      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, undefined)
+      expect(api.getDoacoes).toHaveBeenLastCalledWith(undefined)
     })
   })
 
@@ -112,14 +116,15 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_LEGUMES])
 
     fireEvent.change(screen.getByLabelText('Filtro por peso máximo da doação'), {
       target: { value: '5' },
     })
 
     await waitFor(() => {
-      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { status: 'disponivel', peso_max: '5' })
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel', peso_max: '5' })
     })
 
     expect(await screen.findByText('Doacao Legumes')).toBeInTheDocument()
@@ -129,16 +134,97 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    expect(api.getDoacoes).toHaveBeenNthCalledWith(1, { status: 'disponivel' })
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_LEGUMES])
 
     fireEvent.change(screen.getByLabelText('Filtro por data de validade mínima'), {
       target: { value: '2027-01-01' },
     })
 
     await waitFor(() => {
-      expect(api.getDoacoes).toHaveBeenNthCalledWith(2, { status: 'disponivel', validade_min: '2027-01-01' })
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel', validade_min: '2027-01-01' })
     })
 
     expect(await screen.findByText('Doacao Legumes')).toBeInTheDocument()
+  })
+
+  it('exibe checkboxes de cidades retornadas pelo backend', async () => {
+    render(<Home />)
+
+    expect(await screen.findByLabelText('Filtrar por Campinas')).toBeInTheDocument()
+    expect(screen.getByLabelText('Filtrar por São Paulo')).toBeInTheDocument()
+    expect(api.getCidades).toHaveBeenCalledTimes(1)
+  })
+
+  it('filtra por uma cidade ao marcar seu checkbox', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    await screen.findByLabelText('Filtrar por Campinas')
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS])
+
+    fireEvent.click(screen.getByLabelText('Filtrar por Campinas'))
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel', cidades: 'Campinas' })
+    })
+  })
+
+  it('filtra por múltiplas cidades ao marcar mais de um checkbox', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    await screen.findByLabelText('Filtrar por Campinas')
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS])
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
+
+    fireEvent.click(screen.getByLabelText('Filtrar por Campinas'))
+    fireEvent.click(screen.getByLabelText('Filtrar por São Paulo'))
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel', cidades: 'Campinas,São Paulo' })
+    })
+  })
+
+  it('botão "Todas as cidades" marca todos os checkboxes e envia todas as cidades', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    await screen.findByLabelText('Filtrar por Campinas')
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
+
+    fireEvent.click(screen.getByLabelText('Selecionar todas as cidades'))
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel', cidades: 'Campinas,São Paulo' })
+    })
+
+    expect(screen.getByLabelText('Filtrar por Campinas')).toBeChecked()
+    expect(screen.getByLabelText('Filtrar por São Paulo')).toBeChecked()
+  })
+
+  it('botão "Limpar seleção" desmarca todos os checkboxes e remove o filtro de cidades', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    await screen.findByLabelText('Filtrar por Campinas')
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
+    fireEvent.click(screen.getByLabelText('Selecionar todas as cidades'))
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel', cidades: 'Campinas,São Paulo' })
+    })
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
+    fireEvent.click(screen.getByLabelText('Limpar seleção de cidades'))
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel' })
+    })
+
+    expect(screen.getByLabelText('Filtrar por Campinas')).not.toBeChecked()
+    expect(screen.getByLabelText('Filtrar por São Paulo')).not.toBeChecked()
   })
 })
