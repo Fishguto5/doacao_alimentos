@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.4.0 (2026-06-23)
+
+### Chores
+
+- Corrige formatação de core/views.py
+  ([`6f528ff`](https://github.com/mc656-1s2026/doacao_alimentos/commit/6f528ff07ff956f4449842b044354103546a601a))
+
+### Features
+
+- Filtragem de doações por status
+  ([`e8f6b13`](https://github.com/mc656-1s2026/doacao_alimentos/commit/e8f6b13fe725aac9993bae1f61a6da2164767477))
+
+- Filtragem de doações por status
+  ([`14b8e99`](https://github.com/mc656-1s2026/doacao_alimentos/commit/14b8e99450829a7a40bc0576a023e1b462283e15))
+
+- Filtro de doação por data de validade
+  ([`4180ff2`](https://github.com/mc656-1s2026/doacao_alimentos/commit/4180ff20aa9ebf295a0c1f750764a81f4be17487))
+
+
 ## v0.3.1 (2026-06-22)
 
 ### Bug Fixes
@@ -18,6 +37,11 @@
 
 Correção arquitetural do projeto, removendo a descrição em MVC para arquitetura em camadas, buscando
   um estilo arquitetural compatível com a aplicação.
+
+### Features
+
+- Filtragem de doações por status
+  ([`daa3fac`](https://github.com/mc656-1s2026/doacao_alimentos/commit/daa3fac918816078ff6165d8ae06f7596f59cc93))
 
 
 ## v0.3.0 (2026-06-17)
