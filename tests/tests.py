@@ -1016,3 +1016,74 @@ def test_listagem_de_doacoes_pode_filtrar_por_multiplas_cidades(api_client):
     assert response.status_code == 200
     ids = {item["id"] for item in response.data["data"]}
     assert ids == {doacao_campinas.id, doacao_sp.id}
+
+
+@pytest.mark.django_db
+def test_listagem_de_doacoes_pode_filtrar_por_titulo(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    doacao_arroz = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doação de Arroz {seed}",
+        descricao="",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua A",
+        numero="1",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+    Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doação de Feijão {seed}",
+        descricao="",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="2",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+
+    response = api_client.get(f"/doacao/?busca=Arroz", format="json")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.data["data"]}
+    assert ids == {doacao_arroz.id}
+
+
+@pytest.mark.django_db
+def test_filtro_por_titulo_e_case_insensitive(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+
+    doacao_arroz = Doacao.objects.create(
+        doador=doador,
+        receptor=None,
+        titulo=f"Doação de Arroz {seed}",
+        descricao="",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua A",
+        numero="1",
+        complemento="",
+        estimativa_peso="2.00",
+    )
+
+    response = api_client.get(f"/doacao/?busca=arroz", format="json")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.data["data"]}
+    assert ids == {doacao_arroz.id}

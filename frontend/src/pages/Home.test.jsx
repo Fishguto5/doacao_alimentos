@@ -57,6 +57,7 @@ describe('Home', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     cleanup()
   })
 
@@ -146,6 +147,26 @@ describe('Home', () => {
     })
 
     expect(await screen.findByText('Doacao Legumes')).toBeInTheDocument()
+  })
+
+  it('busca doações por título com debounce', async () => {
+    render(<Home />)
+
+    await screen.findByText('Doacao Frutas')
+    const callsBefore = api.getDoacoes.mock.calls.length
+
+    api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS])
+
+    fireEvent.change(screen.getByPlaceholderText('Buscar doações...'), {
+      target: { value: 'Frutas' },
+    })
+
+    // Antes do debounce disparar, getDoacoes não deve ter sido chamado novamente
+    expect(api.getDoacoes).toHaveBeenCalledTimes(callsBefore)
+
+    await waitFor(() => {
+      expect(api.getDoacoes).toHaveBeenLastCalledWith({ status: 'disponivel', busca: 'Frutas' })
+    }, { timeout: 1000 })
   })
 
   it('exibe checkboxes de cidades retornadas pelo backend', async () => {

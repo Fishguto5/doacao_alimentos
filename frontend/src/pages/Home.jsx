@@ -13,6 +13,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [searchDebounced, setSearchDebounced] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchDebounced(search), 400)
+    return () => clearTimeout(timer)
+  }, [search])
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
   const [pesoMaxFiltro, setPesoMaxFiltro] = useState('')
@@ -48,6 +54,7 @@ export default function Home() {
         if (pesoMaxFiltro) params.peso_max = pesoMaxFiltro
         if (validadeMinFiltro) params.validade_min = validadeMinFiltro
         if (cidadesFiltroParam) params.cidades = cidadesFiltroParam
+        if (searchDebounced) params.busca = searchDebounced
         const data = await api.getDoacoes(Object.keys(params).length ? params : undefined)
         if (!active) return
         setDoacoes(data)
@@ -64,7 +71,7 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro, cidadesFiltroParam])
+  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro, cidadesFiltroParam, searchDebounced])
 
   const toggleCidade = (cidade) => {
     setCidadesSelecionadas(prev => {
@@ -86,17 +93,7 @@ export default function Home() {
     setCidadesSelecionadas(new Set())
   }
 
-  const filtradas = doacoes.filter(d => {
-    if (search) {
-      const q = search.toLowerCase()
-      return (
-        d.titulo?.toLowerCase().includes(q) ||
-        d.descricao?.toLowerCase().includes(q) ||
-        d.bairro?.toLowerCase().includes(q)
-      )
-    }
-    return true
-  })
+  const filtradas = doacoes
 
   return (
     <main className="page">

@@ -594,6 +594,10 @@ def view_doacao(request):
             if cidades_lista:
                 doacao_obj = doacao_obj.filter(cidade__in=cidades_lista)
 
+        busca = request.query_params.get("busca")
+        if busca:
+            doacao_obj = doacao_obj.filter(titulo__icontains=busca)
+
         serializer = DoacaoSerializer(doacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},
