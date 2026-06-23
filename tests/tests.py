@@ -1054,7 +1054,7 @@ def test_listagem_de_doacoes_pode_filtrar_por_titulo(api_client):
         estimativa_peso="2.00",
     )
 
-    response = api_client.get(f"/doacao/?busca=Arroz", format="json")
+    response = api_client.get("/doacao/?busca=Arroz", format="json")
 
     assert response.status_code == 200
     ids = {item["id"] for item in response.data["data"]}
@@ -1082,7 +1082,7 @@ def test_filtro_por_titulo_e_case_insensitive(api_client):
         estimativa_peso="2.00",
     )
 
-    response = api_client.get(f"/doacao/?busca=arroz", format="json")
+    response = api_client.get("/doacao/?busca=arroz", format="json")
 
     assert response.status_code == 200
     ids = {item["id"] for item in response.data["data"]}
