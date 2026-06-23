@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '../api'
 import DonationCard from '../components/DonationCard'
 import { useUser } from '../context/UserContext'
@@ -10,6 +10,8 @@ export default function Home() {
   const [categorias, setCategorias] = useState([])
   const [cidades, setCidades] = useState([])
   const [cidadesSelecionadas, setCidadesSelecionadas] = useState(new Set())
+  const [comboAberta, setComboAberta] = useState(false)
+  const comboRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
@@ -93,6 +95,16 @@ export default function Home() {
     setCidadesSelecionadas(new Set())
   }
 
+  useEffect(() => {
+    function handleClickFora(e) {
+      if (comboRef.current && !comboRef.current.contains(e.target)) {
+        setComboAberta(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickFora)
+    return () => document.removeEventListener('mousedown', handleClickFora)
+  }, [])
+
   const filtradas = doacoes
 
   return (
@@ -161,41 +173,56 @@ export default function Home() {
             onChange={e => setValidadeMinFiltro(e.target.value)}
             aria-label="Filtro por data de validade mínima"
           />
+          {cidades.length > 0 && (
+            <div className="cidades-combo" ref={comboRef}>
+              <button
+                className="input cidades-combo-trigger"
+                onClick={() => setComboAberta(prev => !prev)}
+                aria-haspopup="listbox"
+                aria-expanded={comboAberta}
+                aria-label="Filtro por cidade"
+              >
+                {cidadesSelecionadas.size === 0
+                  ? 'Todas as cidades'
+                  : `${cidadesSelecionadas.size} cidade${cidadesSelecionadas.size > 1 ? 's' : ''} selecionada${cidadesSelecionadas.size > 1 ? 's' : ''}`}
+                <span className="cidades-combo-arrow">{comboAberta ? '▲' : '▼'}</span>
+              </button>
+              {comboAberta && (
+                <div className="cidades-combo-menu" role="listbox">
+                  <div className="cidades-combo-acoes">
+                    <button
+                      className="btn-secondary btn-sm"
+                      onClick={selecionarTodasCidades}
+                      aria-label="Selecionar todas as cidades"
+                    >
+                      Todas
+                    </button>
+                    <button
+                      className="btn-secondary btn-sm"
+                      onClick={limparSelecaoCidades}
+                      aria-label="Limpar seleção de cidades"
+                    >
+                      Limpar
+                    </button>
+                  </div>
+                  <div className="cidades-opcoes">
+                    {cidades.map(cidade => (
+                      <label key={cidade} className="cidade-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={cidadesSelecionadas.has(cidade)}
+                          onChange={() => toggleCidade(cidade)}
+                          aria-label={`Filtrar por ${cidade}`}
+                        />
+                        {cidade}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-
-        {cidades.length > 0 && (
-          <div className="cidades-filtro" aria-label="Filtro por cidade">
-            <div className="cidades-filtro-acoes">
-              <button
-                className="btn-secondary btn-sm"
-                onClick={selecionarTodasCidades}
-                aria-label="Selecionar todas as cidades"
-              >
-                Todas as cidades
-              </button>
-              <button
-                className="btn-secondary btn-sm"
-                onClick={limparSelecaoCidades}
-                aria-label="Limpar seleção de cidades"
-              >
-                Limpar seleção
-              </button>
-            </div>
-            <div className="cidades-lista">
-              {cidades.map(cidade => (
-                <label key={cidade} className="cidade-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={cidadesSelecionadas.has(cidade)}
-                    onChange={() => toggleCidade(cidade)}
-                    aria-label={`Filtrar por ${cidade}`}
-                  />
-                  {cidade}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
 
         <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
       </section>

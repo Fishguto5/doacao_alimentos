@@ -169,10 +169,18 @@ describe('Home', () => {
     }, { timeout: 1000 })
   })
 
-  it('exibe checkboxes de cidades retornadas pelo backend', async () => {
+  const abrirCombo = async () => {
+    fireEvent.click(screen.getByLabelText('Filtro por cidade'))
+    await screen.findByLabelText('Filtrar por Campinas')
+  }
+
+  it('exibe checkboxes de cidades retornadas pelo backend ao abrir o dropdown', async () => {
     render(<Home />)
 
-    expect(await screen.findByLabelText('Filtrar por Campinas')).toBeInTheDocument()
+    await screen.findByText('Doacao Frutas')
+    await abrirCombo()
+
+    expect(screen.getByLabelText('Filtrar por Campinas')).toBeInTheDocument()
     expect(screen.getByLabelText('Filtrar por São Paulo')).toBeInTheDocument()
     expect(api.getCidades).toHaveBeenCalledTimes(1)
   })
@@ -181,7 +189,7 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    await screen.findByLabelText('Filtrar por Campinas')
+    await abrirCombo()
 
     api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS])
 
@@ -196,7 +204,7 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    await screen.findByLabelText('Filtrar por Campinas')
+    await abrirCombo()
 
     api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS])
     api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
@@ -213,7 +221,7 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    await screen.findByLabelText('Filtrar por Campinas')
+    await abrirCombo()
 
     api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
 
@@ -231,7 +239,7 @@ describe('Home', () => {
     render(<Home />)
 
     await screen.findByText('Doacao Frutas')
-    await screen.findByLabelText('Filtrar por Campinas')
+    await abrirCombo()
 
     api.getDoacoes.mockResolvedValueOnce([DOACAO_FRUTAS, DOACAO_LEGUMES])
     fireEvent.click(screen.getByLabelText('Selecionar todas as cidades'))
