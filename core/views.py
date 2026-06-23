@@ -1,3 +1,5 @@
+import datetime
+
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -13,6 +15,7 @@ from core.models import (
     Avaliacao,
     Categoria,
     Doacao,
+    DoacaoStatus,
     Notificacao,
     Person,
     SolicitacaoDoacao,
@@ -544,12 +547,47 @@ def view_doacao(request):
         if categoria_id:
             doacao_obj = doacao_obj.filter(alimentos__categoria_id=categoria_id).distinct()
 
+        status_filtro = request.query_params.get("status")
+        if status_filtro:
+            valores_validos = DoacaoStatus.values
+            if status_filtro not in valores_validos:
+                return Response(
+                    {
+                        "msg": (
+                            f"Status invalido: '{status_filtro}'. "
+                            f"Valores aceitos: {', '.join(valores_validos)}."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            doacao_obj = doacao_obj.filter(status=status_filtro)
+
         peso_max = request.query_params.get("peso_max")
         if peso_max:
             doacao_obj = doacao_obj.filter(
                 estimativa_peso__isnull=False,
                 estimativa_peso__lte=peso_max,
             )
+
+        validade_min = request.query_params.get("validade_min")
+        if validade_min:
+            try:
+                data_validade_min = datetime.date.fromisoformat(validade_min)
+            except ValueError:
+                return Response(
+                    {
+                        "msg": (
+                            f"Data invalida: '{validade_min}'. "
+                            "Use o formato YYYY-MM-DD (ex: 2026-12-31)."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            doacao_obj = doacao_obj.filter(
+                expira_em__isnull=False,
+                expira_em__gte=data_validade_min,
+            )
+
         serializer = DoacaoSerializer(doacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},

@@ -15,6 +15,7 @@ export default function Home() {
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
   const [pesoMaxFiltro, setPesoMaxFiltro] = useState('')
+  const [validadeMinFiltro, setValidadeMinFiltro] = useState('')
 
   useEffect(() => {
     api.getCategorias()
@@ -30,11 +31,12 @@ export default function Home() {
       setError('')
 
       try {
-        const filtrosServidor = {}
-        if (categoriaFiltro) filtrosServidor.categoria = categoriaFiltro
-        if (pesoMaxFiltro) filtrosServidor.peso_max = pesoMaxFiltro
-
-        const data = await api.getDoacoes(Object.keys(filtrosServidor).length ? filtrosServidor : undefined)
+        const params = {}
+        if (categoriaFiltro) params.categoria = categoriaFiltro
+        if (statusFiltro) params.status = statusFiltro
+        if (pesoMaxFiltro) params.peso_max = pesoMaxFiltro
+        if (validadeMinFiltro) params.validade_min = validadeMinFiltro
+        const data = await api.getDoacoes(Object.keys(params).length ? params : undefined)
         if (!active) return
         setDoacoes(data)
       } catch (e) {
@@ -50,14 +52,11 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [categoriaFiltro, pesoMaxFiltro])
+  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro])
 
   const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
 
   const filtradas = doacoes.filter(d => {
-    const VALID_STATUSES = ['disponivel', 'reservada', 'concluida', 'expirada', 'cancelada']
-    const status = VALID_STATUSES.includes(d.status) ? d.status : 'disponivel'
-    if (statusFiltro && status !== statusFiltro) return false
     if (cidadeFiltro && d.cidade !== cidadeFiltro) return false
     if (search) {
       const q = search.toLowerCase()
@@ -132,6 +131,13 @@ export default function Home() {
             onChange={e => setPesoMaxFiltro(e.target.value)}
             placeholder="Peso máximo (kg)"
             aria-label="Filtro por peso máximo da doação"
+          />
+          <input
+            className="input"
+            type="date"
+            value={validadeMinFiltro}
+            onChange={e => setValidadeMinFiltro(e.target.value)}
+            aria-label="Filtro por data de validade mínima"
           />
         </div>
         <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
