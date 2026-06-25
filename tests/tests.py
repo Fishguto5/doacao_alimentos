@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from core.models import (
@@ -55,13 +56,17 @@ def _create_dependencies(resource: str, seed: str) -> dict:
         dependencies["receptor"] = _create_usuario(seed, "Receptor")
 
     if resource in {"solicitacao-doacao", "alimento", "notificacao", "avaliacao"}:
+        doacao_concluida = resource == "avaliacao"
         dependencies["categoria"] = Categoria.objects.create(nome=f"Categoria {seed}")
         dependencies["doacao"] = Doacao.objects.create(
             doador=dependencies["doador"],
             receptor=dependencies["receptor"],
             titulo=f"Doacao Base {seed}",
             descricao="Doacao criada para testes",
-            status="disponivel",
+            status="concluida" if doacao_concluida else "disponivel",
+            data_conclusao=timezone.now() if doacao_concluida else None,
+            concluida_por_doador=doacao_concluida,
+            concluida_por_receptor=doacao_concluida,
             cep="13000000",
             cidade="Campinas",
             estado="SP",
@@ -211,15 +216,15 @@ def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, d
     if resource == "avaliacao":
         create_payload = {
             "doacao": dependencies["doacao"].id,
-            "avaliador": dependencies["doador"].id,
-            "avaliado": dependencies["receptor"].id,
+            "avaliador": dependencies["receptor"].id,
+            "avaliado": dependencies["doador"].id,
             "nota": 4,
             "comentario": f"Avaliacao inicial {seed}",
         }
         put_payload = {
             "doacao": dependencies["doacao"].id,
-            "avaliador": dependencies["doador"].id,
-            "avaliado": dependencies["receptor"].id,
+            "avaliador": dependencies["receptor"].id,
+            "avaliado": dependencies["doador"].id,
             "nota": 5,
             "comentario": f"Avaliacao atualizada {seed}",
         }
@@ -250,6 +255,36 @@ def _assert_patch_field(resource: str, response_data: dict, patch_payload: dict)
     if field == "quantidade":
         expected = "3.00"
     assert response_data[field] == expected
+
+
+def _create_doacao_para_avaliacao(
+    seed: str,
+    status_doacao: str = "concluida",
+    doador: Usuario | None = None,
+    receptor: Usuario | None = None,
+) -> tuple[Doacao, Usuario, Usuario]:
+    doador = doador or _create_usuario(f"{seed}_doador", "DoadorAval")
+    receptor = receptor or _create_usuario(f"{seed}_receptor", "ReceptorAval")
+    concluida = status_doacao == "concluida"
+    doacao = Doacao.objects.create(
+        doador=doador,
+        receptor=receptor,
+        titulo=f"Doacao Avaliacao {seed}",
+        descricao="Doacao criada para testar avaliacoes",
+        status=status_doacao,
+        data_conclusao=timezone.now() if concluida else None,
+        concluida_por_doador=concluida,
+        concluida_por_receptor=concluida,
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua Avaliacao",
+        numero="100",
+        complemento="",
+        estimativa_peso="8.00",
+    )
+    return doacao, doador, receptor
 
 
 @pytest.mark.django_db
@@ -311,6 +346,114 @@ def test_resource_crud_full_cycle(api_client, resource):
 
     # Teardown assertion
     assert not model_class.objects.filter(pk=created_id).exists()
+
+
+@pytest.mark.django_db
+def test_receptor_pode_avaliar_doacao_concluida(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doacao, doador, receptor = _create_doacao_para_avaliacao(seed)
+
+    response = api_client.post(
+        "/avaliacao/",
+        data={
+            "doacao": doacao.id,
+            "avaliador": receptor.id,
+            "avaliado": doador.id,
+            "nota": 5,
+            "comentario": "Doacao recebida conforme combinado.",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["data"]["doacao"] == doacao.id
+    assert response.data["data"]["avaliador"] == receptor.id
+    assert response.data["data"]["avaliado"] == doador.id
+
+
+@pytest.mark.django_db
+def test_doador_nao_pode_avaliar_doacao_mesmo_concluida(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doacao, doador, receptor = _create_doacao_para_avaliacao(seed)
+
+    response = api_client.post(
+        "/avaliacao/",
+        data={
+            "doacao": doacao.id,
+            "avaliador": doador.id,
+            "avaliado": receptor.id,
+            "nota": 4,
+            "comentario": "Tentativa invalida do doador.",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "avaliador" in response.data
+    assert not Avaliacao.objects.filter(doacao=doacao, avaliador=doador).exists()
+
+
+@pytest.mark.django_db
+def test_receptor_nao_pode_avaliar_doacao_nao_concluida(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doacao, doador, receptor = _create_doacao_para_avaliacao(
+        seed,
+        status_doacao="reservada",
+    )
+
+    response = api_client.post(
+        "/avaliacao/",
+        data={
+            "doacao": doacao.id,
+            "avaliador": receptor.id,
+            "avaliado": doador.id,
+            "nota": 5,
+            "comentario": "Tentativa antes da conclusao.",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "doacao" in response.data
+    assert not Avaliacao.objects.filter(doacao=doacao).exists()
+
+
+@pytest.mark.django_db
+def test_qualquer_usuario_pode_listar_avaliacoes_de_uma_doacao(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(f"{seed}_doador", "DoadorAval")
+    receptor = _create_usuario(f"{seed}_receptor", "ReceptorAval")
+    doacao_um, _, _ = _create_doacao_para_avaliacao(
+        f"{seed}_um",
+        doador=doador,
+        receptor=receptor,
+    )
+    doacao_dois, _, _ = _create_doacao_para_avaliacao(
+        f"{seed}_dois",
+        doador=doador,
+        receptor=receptor,
+    )
+    avaliacao_um = Avaliacao.objects.create(
+        doacao=doacao_um,
+        avaliador=receptor,
+        avaliado=doador,
+        nota=5,
+        comentario="Avaliacao da primeira doacao.",
+    )
+    Avaliacao.objects.create(
+        doacao=doacao_dois,
+        avaliador=receptor,
+        avaliado=doador,
+        nota=3,
+        comentario="Avaliacao de outra doacao.",
+    )
+
+    response = api_client.get(f"/avaliacao/?doacao={doacao_um.id}", format="json")
+
+    assert response.status_code == 200
+    assert [avaliacao["id"] for avaliacao in response.data["data"]] == [
+        avaliacao_um.id,
+    ]
 
 
 @pytest.mark.django_db

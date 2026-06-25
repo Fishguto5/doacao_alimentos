@@ -802,6 +802,22 @@ def view_notificacao(request):
 def view_avaliacao(request):
     if request.method == "GET":
         avaliacao_obj = Avaliacao.objects.all()
+        doacao_id = request.query_params.get("doacao")
+        if doacao_id:
+            try:
+                doacao_id = int(doacao_id)
+            except ValueError:
+                return Response(
+                    {
+                        "msg": (
+                            f"Doacao invalida: '{doacao_id}'. "
+                            "Informe o id numerico da doacao."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            avaliacao_obj = avaliacao_obj.filter(doacao_id=doacao_id)
+
         serializer = AvaliacaoSerializer(avaliacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},

@@ -146,6 +146,32 @@ class NotificacaoSerializer(serializers.ModelSerializer):
 
 
 class AvaliacaoSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        instance = getattr(self, "instance", None)
+        doacao = attrs.get("doacao", getattr(instance, "doacao", None))
+        avaliador = attrs.get("avaliador", getattr(instance, "avaliador", None))
+        avaliado = attrs.get("avaliado", getattr(instance, "avaliado", None))
+
+        if not doacao or not avaliador or not avaliado:
+            return attrs
+
+        if doacao.status != DoacaoStatus.CONCLUIDA:
+            raise ValidationError(
+                {"doacao": "A doacao precisa estar concluida para receber avaliacoes."}
+            )
+
+        if avaliador.id != doacao.receptor_id:
+            raise ValidationError(
+                {"avaliador": "Somente o usuario que recebeu a doacao pode avaliar."}
+            )
+
+        if avaliado.id != doacao.doador_id:
+            raise ValidationError(
+                {"avaliado": "A avaliacao deve ser feita para o doador da doacao."}
+            )
+
+        return attrs
+
     class Meta:
         model = Avaliacao
         fields = "__all__"
