@@ -24,6 +24,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from core.views import (
     view_alimento,
     view_alimento_detail,
+    view_auth_login,
+    view_auth_register,
     view_avaliacao,
     view_avaliacao_detail,
     view_categoria,
@@ -46,6 +48,8 @@ from . import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("debug/", include("debug_toolbar.urls")),
+    path("auth/register/", view_auth_register, name="auth_register"),
+    path("auth/login/", view_auth_login, name="auth_login"),
     path("person/", view_person, name="person"),
     path("person/<int:id>/", view_person_detail, name="person_detail"),
     path("usuario/", view_usuario, name="usuario"),

@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.auth.hashers import check_password, identify_hasher, make_password
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -23,6 +24,7 @@ from core.models import (
 )
 from core.serializers import (
     AlimentoSerializer,
+    AuthLoginSerializer,
     AvaliacaoSerializer,
     CategoriaSerializer,
     DoacaoSerializer,
@@ -39,6 +41,22 @@ DELETE_ID_SERIALIZER = inline_serializer(
         "id": serializers.IntegerField(),
     },
 )
+
+
+def _usuario_response_data(usuario):
+    return UsuarioSerializer(usuario).data
+
+
+def _password_matches(usuario, raw_password):
+    try:
+        identify_hasher(usuario.password)
+    except ValueError:
+        if usuario.password == raw_password:
+            usuario.password = make_password(raw_password)
+            usuario.save(update_fields=["password", "updated_at"])
+            return True
+        return False
+    return check_password(raw_password, usuario.password)
 
 
 CRUD_EXAMPLES = {
@@ -390,6 +408,59 @@ def crud_docs(serializer_class, tag):
 @api_view()
 def view_dtl(request):
     return Response({"success": 409, "message": "api"})
+
+
+@extend_schema(
+    tags=["auth"],
+    summary="Cadastrar usuário",
+    request=UsuarioSerializer,
+    responses={201: UsuarioSerializer},
+)
+@api_view(["POST"])
+def view_auth_register(request):
+    serializer = UsuarioSerializer(data=request.data)
+    if serializer.is_valid():
+        usuario = serializer.save()
+        return Response(
+            {"msg": "Usuario registered successfully", "data": _usuario_response_data(usuario)},
+            status=status.HTTP_201_CREATED,
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    tags=["auth"],
+    summary="Entrar com e-mail e senha",
+    request=AuthLoginSerializer,
+    responses={200: UsuarioSerializer},
+)
+@api_view(["POST"])
+def view_auth_login(request):
+    serializer = AuthLoginSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    email = serializer.validated_data["email"].strip()
+    password = serializer.validated_data["password"]
+
+    try:
+        usuario = Usuario.objects.get(email__iexact=email)
+    except Usuario.DoesNotExist:
+        return Response(
+            {"msg": "E-mail ou senha invalidos."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    if not _password_matches(usuario, password):
+        return Response(
+            {"msg": "E-mail ou senha invalidos."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    return Response(
+        {"msg": "Login successful", "data": _usuario_response_data(usuario)},
+        status=status.HTTP_200_OK,
+    )
 
 
 # Métodos análogos são implementadas para cada modelo.

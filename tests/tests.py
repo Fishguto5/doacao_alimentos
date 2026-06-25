@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from django.contrib.auth.hashers import check_password
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -287,6 +288,22 @@ def _create_doacao_para_avaliacao(
     return doacao, doador, receptor
 
 
+def _usuario_payload(seed: str, prefix: str = "Usuario") -> dict:
+    return {
+        "nome": f"{prefix} {seed}",
+        "email": f"{prefix.lower()}_{seed}@example.com",
+        "password": "senha12345",
+        "cep": "13000000",
+        "cidade": "Campinas",
+        "estado": "SP",
+        "bairro": "Centro",
+        "logradouro": "Rua Auth",
+        "numero": "10",
+        "complemento": "",
+        "foto_perfil_url": "",
+    }
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "resource",
@@ -346,6 +363,55 @@ def test_resource_crud_full_cycle(api_client, resource):
 
     # Teardown assertion
     assert not model_class.objects.filter(pk=created_id).exists()
+
+
+@pytest.mark.django_db
+def test_auth_register_cria_usuario_com_senha_hash_e_nao_retorna_password(api_client):
+    seed = uuid.uuid4().hex[:8]
+    payload = _usuario_payload(seed, "Auth")
+
+    response = api_client.post("/auth/register/", data=payload, format="json")
+
+    assert response.status_code == 201
+    assert "password" not in response.data["data"]
+    usuario = Usuario.objects.get(pk=response.data["data"]["id"])
+    assert usuario.password != payload["password"]
+    assert check_password(payload["password"], usuario.password)
+
+
+@pytest.mark.django_db
+def test_auth_login_valida_email_e_senha(api_client):
+    seed = uuid.uuid4().hex[:8]
+    payload = _usuario_payload(seed, "Login")
+    register_response = api_client.post("/auth/register/", data=payload, format="json")
+    assert register_response.status_code == 201
+
+    login_response = api_client.post(
+        "/auth/login/",
+        data={"email": payload["email"].upper(), "password": payload["password"]},
+        format="json",
+    )
+
+    assert login_response.status_code == 200
+    assert login_response.data["data"]["email"] == payload["email"]
+    assert "password" not in login_response.data["data"]
+
+
+@pytest.mark.django_db
+def test_auth_login_rejeita_senha_incorreta(api_client):
+    seed = uuid.uuid4().hex[:8]
+    payload = _usuario_payload(seed, "LoginFail")
+    register_response = api_client.post("/auth/register/", data=payload, format="json")
+    assert register_response.status_code == 201
+
+    login_response = api_client.post(
+        "/auth/login/",
+        data={"email": payload["email"], "password": "senha_errada"},
+        format="json",
+    )
+
+    assert login_response.status_code == 401
+    assert "msg" in login_response.data
 
 
 @pytest.mark.django_db

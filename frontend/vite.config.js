@@ -10,6 +10,7 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
+      '/auth': 'http://localhost:8000',
       '/usuario': 'http://localhost:8000',
       '/doacao': 'http://localhost:8000',
       '/categoria': 'http://localhost:8000',

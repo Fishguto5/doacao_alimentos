@@ -21,6 +21,7 @@ export default function Register() {
   })
 
   const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
 
   function updateForm(field, value) {
     setForm(f => ({ ...f, [field]: value }))
@@ -47,7 +48,7 @@ export default function Register() {
     setLoading(true)
     try {
       const payload = { ...form }
-      const created = await api.createUsuario(payload)
+      const created = await api.register(payload)
       login({
         id: created.id,
         nome: created.nome,
@@ -74,12 +75,7 @@ export default function Register() {
     setError('')
     setLoading(true)
     try {
-      const usuarios = await api.getUsuarios()
-      const found = usuarios.find(u => u.email.toLowerCase() === loginEmail.toLowerCase())
-      if (!found) {
-        setError('Nenhum usuário encontrado com esse e-mail.')
-        return
-      }
+      const found = await api.login({ email: loginEmail, password: loginPassword })
       login({
         id: found.id,
         nome: found.nome,
@@ -216,6 +212,18 @@ export default function Register() {
                 value={loginEmail}
                 onChange={e => setLoginEmail(e.target.value)}
                 placeholder="seu@email.com"
+              />
+            </div>
+            <div className="form-group">
+              <label>Senha *</label>
+              <input
+                className="input"
+                type="password"
+                required
+                minLength={6}
+                value={loginPassword}
+                onChange={e => setLoginPassword(e.target.value)}
+                placeholder="Sua senha"
               />
             </div>
             <button className="btn-primary btn-full" type="submit" disabled={loading}>

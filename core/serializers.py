@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import identify_hasher, make_password
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -31,9 +32,31 @@ class PersonSerializer(serializers.ModelSerializer):
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
+    def _hash_password(self, password):
+        try:
+            identify_hasher(password)
+            return password
+        except ValueError:
+            return make_password(password)
+
+    def create(self, validated_data):
+        validated_data["password"] = self._hash_password(validated_data["password"])
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if "password" in validated_data:
+            validated_data["password"] = self._hash_password(validated_data["password"])
+        return super().update(instance, validated_data)
+
     class Meta:
         model = Usuario
         fields = "__all__"
+        extra_kwargs = {"password": {"write_only": True}}
+
+
+class AuthLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
 
 
 class CategoriaSerializer(serializers.ModelSerializer):

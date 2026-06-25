@@ -1,11 +1,14 @@
 import { createContext, useContext, useState } from 'react'
 
 const UserContext = createContext(null)
+const STORAGE_KEY = 'doacaoUserAuth'
+const LEGACY_STORAGE_KEY = 'doacaoUser'
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('doacaoUser')
+      localStorage.removeItem(LEGACY_STORAGE_KEY)
+      const stored = localStorage.getItem(STORAGE_KEY)
       return stored ? JSON.parse(stored) : null
     } catch {
       return null
@@ -13,12 +16,13 @@ export function UserProvider({ children }) {
   })
 
   function login(userData) {
-    localStorage.setItem('doacaoUser', JSON.stringify(userData))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
     setUser(userData)
   }
 
   function logout() {
-    localStorage.removeItem('doacaoUser')
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(LEGACY_STORAGE_KEY)
     setUser(null)
     window.location.hash = '#/'
   }
