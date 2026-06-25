@@ -12,7 +12,7 @@ from core.models import (
     SolicitacaoDoacao,
     Usuario,
 )
-from core.services import recompute_doacao_expiracao
+from core.services import recompute_doacao_derivados
 from core.state_machine import (
     cancelar_doacao,
     concluir_doacao,
@@ -111,7 +111,12 @@ class DoacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doacao
         fields = "__all__"
-        read_only_fields = ["expira_em", "concluida_por_doador", "concluida_por_receptor"]
+        read_only_fields = [
+            "expira_em",
+            "estimativa_peso",
+            "concluida_por_doador",
+            "concluida_por_receptor",
+        ]
 
 
 class SolicitacaoDoacaoSerializer(serializers.ModelSerializer):
@@ -123,15 +128,15 @@ class SolicitacaoDoacaoSerializer(serializers.ModelSerializer):
 class AlimentoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         alimento = super().create(validated_data)
-        recompute_doacao_expiracao(alimento.doacao)
+        recompute_doacao_derivados(alimento.doacao)
         return alimento
 
     def update(self, instance, validated_data):
         doacao_anterior = instance.doacao
         alimento = super().update(instance, validated_data)
-        recompute_doacao_expiracao(alimento.doacao)
+        recompute_doacao_derivados(alimento.doacao)
         if alimento.doacao_id != doacao_anterior.id:
-            recompute_doacao_expiracao(doacao_anterior)
+            recompute_doacao_derivados(doacao_anterior)
         return alimento
 
     class Meta:
@@ -146,6 +151,32 @@ class NotificacaoSerializer(serializers.ModelSerializer):
 
 
 class AvaliacaoSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        instance = getattr(self, "instance", None)
+        doacao = attrs.get("doacao", getattr(instance, "doacao", None))
+        avaliador = attrs.get("avaliador", getattr(instance, "avaliador", None))
+        avaliado = attrs.get("avaliado", getattr(instance, "avaliado", None))
+
+        if not doacao or not avaliador or not avaliado:
+            return attrs
+
+        if doacao.status != DoacaoStatus.CONCLUIDA:
+            raise ValidationError(
+                {"doacao": "A doacao precisa estar concluida para receber avaliacoes."}
+            )
+
+        if avaliador.id != doacao.receptor_id:
+            raise ValidationError(
+                {"avaliador": "Somente o usuario que recebeu a doacao pode avaliar."}
+            )
+
+        if avaliado.id != doacao.doador_id:
+            raise ValidationError(
+                {"avaliado": "A avaliacao deve ser feita para o doador da doacao."}
+            )
+
+        return attrs
+
     class Meta:
         model = Avaliacao
         fields = "__all__"

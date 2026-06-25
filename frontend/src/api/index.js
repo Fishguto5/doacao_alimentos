@@ -58,6 +58,6 @@ export const api = {
   updateNotificacao: (data) => request('PATCH', '/notificacao/', data),
 
   // Avaliacao
-  getAvaliacoes: () => request('GET', '/avaliacao/'),
+  getAvaliacoes: (params) => request('GET', '/avaliacao/', undefined, params),
   createAvaliacao: (data) => request('POST', '/avaliacao/', data),
 }

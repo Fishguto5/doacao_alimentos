@@ -31,7 +31,7 @@ from core.serializers import (
     SolicitacaoDoacaoSerializer,
     UsuarioSerializer,
 )
-from core.services import recompute_doacao_expiracao
+from core.services import recompute_doacao_derivados
 
 DELETE_ID_SERIALIZER = inline_serializer(
     name="DeleteByIdRequest",
@@ -802,6 +802,27 @@ def view_notificacao(request):
 def view_avaliacao(request):
     if request.method == "GET":
         avaliacao_obj = Avaliacao.objects.all()
+        for filtro, campo in {
+            "doacao": "doacao_id",
+            "avaliado": "avaliado_id",
+            "avaliador": "avaliador_id",
+        }.items():
+            valor = request.query_params.get(filtro)
+            if not valor:
+                continue
+            try:
+                valor = int(valor)
+            except ValueError:
+                return Response(
+                    {
+                        "msg": (
+                            f"Filtro invalido para {filtro}: '{valor}'. " "Informe um id numerico."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            avaliacao_obj = avaliacao_obj.filter(**{campo: valor})
+
         serializer = AvaliacaoSerializer(avaliacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},
@@ -1002,7 +1023,7 @@ def view_alimento_detail(request, id):
         elif request.method == "DELETE":
             doacao = alimento_obj.doacao
             alimento_obj.delete()
-            recompute_doacao_expiracao(doacao)
+            recompute_doacao_derivados(doacao)
             return Response(
                 {"msg": "Alimento deleted successfully"}, status=status.HTTP_204_NO_CONTENT
             )

@@ -33,12 +33,12 @@ export default function DonationDetail({ id }) {
         api.getDoacao(id),
         api.getAlimentos(),
         api.getSolicitacoes(),
-        api.getAvaliacoes(),
+        api.getAvaliacoes({ doacao: id }),
       ])
       setDoacao(d)
       setAlimentos(allAlimentos.filter(a => a.doacao === d.id))
       setSolicitacoes(allSols.filter(s => s.doacao === d.id))
-      setAvaliacoes(allAvals.filter(a => a.doacao === d.id))
+      setAvaliacoes(allAvals)
       if (d.doador) {
         api.getUsuario(d.doador).then(setDoador).catch(() => {})
       }
@@ -52,10 +52,11 @@ export default function DonationDetail({ id }) {
   useEffect(() => { loadData() }, [loadData])
 
   const isDonor = user && doacao && doacao.doador === user.id
+  const isReceptor = user && doacao && doacao.receptor === user.id
   const mySolicitation = user && solicitacoes.find(s => s.solicitante === user.id)
   const canRequest = user && doacao?.status === 'disponivel' && !isDonor && !mySolicitation
   const myRating = user && avaliacoes.find(a => a.avaliador === user.id)
-  const canRate = user && doacao?.status === 'concluida' && !myRating && (isDonor || doacao?.receptor === user.id)
+  const canRate = user && doacao?.status === 'concluida' && !myRating && isReceptor && doacao?.doador
 
   async function handleRequest(e) {
     e.preventDefault()
@@ -139,7 +140,7 @@ export default function DonationDetail({ id }) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const avaliado = isDonor ? doacao.receptor : doacao.doador
+      const avaliado = doacao.doador
       await api.createAvaliacao({ doacao: doacao.id, avaliador: user.id, avaliado, nota: ratingForm.nota, comentario: ratingForm.comentario })
       setFeedback('Avaliação enviada!')
       setShowRating(false)
@@ -209,7 +210,12 @@ export default function DonationDetail({ id }) {
             {doacao.cidade && <div className="meta-card"><span className="meta-label">Local</span><span>📍 {doacao.bairro ? `${doacao.bairro}, ` : ''}{doacao.cidade} – {doacao.estado}</span></div>}
             {doacao.estimativa_peso && <div className="meta-card"><span className="meta-label">Peso estimado</span><span>⚖️ {doacao.estimativa_peso} kg</span></div>}
             {doacao.expira_em && <div className="meta-card"><span className="meta-label">Expira em</span><span>📅 {new Date(doacao.expira_em).toLocaleDateString('pt-BR')}</span></div>}
-            {doador && <div className="meta-card"><span className="meta-label">Doador</span><span>👤 {doador.nome}</span></div>}
+            {doador && (
+              <div className="meta-card">
+                <span className="meta-label">Doador</span>
+                <button className="profile-link" onClick={() => navigate(`#/users/${doador.id}`)}>👤 {doador.nome}</button>
+              </div>
+            )}
           </div>
 
           {alimentos.length > 0 && (

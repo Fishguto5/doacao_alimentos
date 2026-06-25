@@ -29,6 +29,16 @@ function formatDateInput(raw) {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
 }
 
+function quantidadeEmKg(alimento) {
+  const quantidade = Number(alimento.quantidade)
+  if (!Number.isFinite(quantidade) || quantidade <= 0) return 0
+  if (alimento.unidade === 'kg') return quantidade
+  if (alimento.unidade === 'g') return quantidade / 1000
+  if (alimento.unidade === 'l') return quantidade
+  if (alimento.unidade === 'ml') return quantidade / 1000
+  return 0
+}
+
 export default function CreateDonation() {
   const { user } = useUser()
   const [categorias, setCategorias] = useState([])
@@ -42,7 +52,7 @@ export default function CreateDonation() {
   const [form, setForm] = useState({
     titulo: '', descricao: '',
     cep: '', cidade: user?.cidade || '', estado: user?.estado || '',
-    bairro: '', logradouro: '', numero: '', complemento: '', estimativa_peso: '',
+    bairro: '', logradouro: '', numero: '', complemento: '',
   })
 
   const [alimentos, setAlimentos] = useState([
@@ -56,6 +66,9 @@ export default function CreateDonation() {
     .map(a => a.data_validade ? displayToIso(a.data_validade) : '')
     .filter(Boolean)
     .sort()[0] || ''
+  const pesoEstimadoCalculado = alimentos
+    .reduce((total, alimento) => total + quantidadeEmKg(alimento), 0)
+    .toFixed(2)
 
   useEffect(() => {
     if (!user) { navigate('#/register'); return }
@@ -157,7 +170,6 @@ export default function CreateDonation() {
       payload.append('logradouro', form.logradouro)
       payload.append('numero', form.numero)
       payload.append('complemento', form.complemento)
-      payload.append('estimativa_peso', form.estimativa_peso || '')
       if (imagem) {
         payload.append('imagem', imagem)
       }
@@ -239,8 +251,8 @@ export default function CreateDonation() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Peso estimado (kg)</label>
-              <input className="input" type="number" min="0" step="0.1" value={form.estimativa_peso} onChange={e => updateForm('estimativa_peso', e.target.value)} placeholder="0.0" />
+              <label>Peso estimado automático (kg)</label>
+              <input className="input" type="text" value={pesoEstimadoCalculado} readOnly />
             </div>
             <div className="form-group">
               <label>Data de vencimento da doação</label>
