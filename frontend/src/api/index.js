@@ -25,6 +25,10 @@ const request = async (method, path, body, params) => {
 }
 
 export const api = {
+  // Auth
+  register: (data) => request('POST', '/auth/register/', data),
+  login: (data) => request('POST', '/auth/login/', data),
+
   // Usuario
   getUsuarios: () => request('GET', '/usuario/'),
   getUsuario: (id) => request('GET', `/usuario/${id}/`),
