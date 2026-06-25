@@ -29,6 +29,7 @@ from core.views import (
     view_categoria,
     view_categoria_detail,
     view_doacao,
+    view_doacao_cidades,
     view_doacao_detail,
     view_notificacao,
     view_notificacao_detail,
@@ -52,6 +53,7 @@ urlpatterns = [
     path("categoria/", view_categoria, name="categoria"),
     path("categoria/<int:id>/", view_categoria_detail, name="categoria_detail"),
     path("doacao/", view_doacao, name="doacao"),
+    path("doacao/cidades/", view_doacao_cidades, name="doacao_cidades"),
     path("doacao/<int:id>/", view_doacao_detail, name="doacao_detail"),
     path("solicitacao-doacao/", view_solicitacao_doacao, name="solicitacao_doacao"),
     path(

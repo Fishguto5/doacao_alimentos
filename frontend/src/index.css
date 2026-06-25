@@ -192,6 +192,61 @@ select.input { appearance: auto; }
 .search-input { flex: 2; }
 .results-count { font-size: 13px; color: var(--text-muted); }
 
+/* ── Combo box de cidades ───────────────────── */
+.cidades-combo {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+}
+.cidades-combo-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
+}
+.cidades-combo-arrow {
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.cidades-combo-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 100;
+  padding: 8px 0;
+}
+.cidades-opcoes {
+  max-height: 170px;
+  overflow-y: auto;
+}
+.cidades-combo-acoes {
+  display: flex;
+  gap: 6px;
+  padding: 4px 12px 8px;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 4px;
+}
+.cidade-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cidade-checkbox-label:hover {
+  background: var(--gray-50, #f9fafb);
+}
+
 /* ── Donations grid ─────────────────────────── */
 .donations-grid {
   display: grid;

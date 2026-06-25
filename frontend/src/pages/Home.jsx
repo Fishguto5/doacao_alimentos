@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '../api'
 import DonationCard from '../components/DonationCard'
 import { useUser } from '../context/UserContext'
@@ -8,10 +8,19 @@ export default function Home() {
   const { user } = useUser()
   const [doacoes, setDoacoes] = useState([])
   const [categorias, setCategorias] = useState([])
+  const [cidades, setCidades] = useState([])
+  const [cidadesSelecionadas, setCidadesSelecionadas] = useState(new Set())
+  const [comboAberta, setComboAberta] = useState(false)
+  const comboRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [cidadeFiltro, setCidadeFiltro] = useState('')
+  const [searchDebounced, setSearchDebounced] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchDebounced(search), 400)
+    return () => clearTimeout(timer)
+  }, [search])
   const [statusFiltro, setStatusFiltro] = useState('disponivel')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
   const [pesoMaxFiltro, setPesoMaxFiltro] = useState('')
@@ -22,6 +31,16 @@ export default function Home() {
       .then(data => setCategorias(data))
       .catch(() => setCategorias([]))
   }, [])
+
+  useEffect(() => {
+    api.getCidades()
+      .then(data => setCidades(data))
+      .catch(() => setCidades([]))
+  }, [])
+
+  const cidadesFiltroParam = cidadesSelecionadas.size > 0
+    ? [...cidadesSelecionadas].sort().join(',')
+    : ''
 
   useEffect(() => {
     let active = true
@@ -36,6 +55,8 @@ export default function Home() {
         if (statusFiltro) params.status = statusFiltro
         if (pesoMaxFiltro) params.peso_max = pesoMaxFiltro
         if (validadeMinFiltro) params.validade_min = validadeMinFiltro
+        if (cidadesFiltroParam) params.cidades = cidadesFiltroParam
+        if (searchDebounced) params.busca = searchDebounced
         const data = await api.getDoacoes(Object.keys(params).length ? params : undefined)
         if (!active) return
         setDoacoes(data)
@@ -52,22 +73,39 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro])
+  }, [categoriaFiltro, statusFiltro, pesoMaxFiltro, validadeMinFiltro, cidadesFiltroParam, searchDebounced])
 
-  const cidades = [...new Set(doacoes.map(d => d.cidade).filter(Boolean))].sort()
+  const toggleCidade = (cidade) => {
+    setCidadesSelecionadas(prev => {
+      const next = new Set(prev)
+      if (next.has(cidade)) {
+        next.delete(cidade)
+      } else {
+        next.add(cidade)
+      }
+      return next
+    })
+  }
 
-  const filtradas = doacoes.filter(d => {
-    if (cidadeFiltro && d.cidade !== cidadeFiltro) return false
-    if (search) {
-      const q = search.toLowerCase()
-      return (
-        d.titulo?.toLowerCase().includes(q) ||
-        d.descricao?.toLowerCase().includes(q) ||
-        d.bairro?.toLowerCase().includes(q)
-      )
+  const selecionarTodasCidades = () => {
+    setCidadesSelecionadas(new Set(cidades))
+  }
+
+  const limparSelecaoCidades = () => {
+    setCidadesSelecionadas(new Set())
+  }
+
+  useEffect(() => {
+    function handleClickFora(e) {
+      if (comboRef.current && !comboRef.current.contains(e.target)) {
+        setComboAberta(false)
+      }
     }
-    return true
-  })
+    document.addEventListener('mousedown', handleClickFora)
+    return () => document.removeEventListener('mousedown', handleClickFora)
+  }, [])
+
+  const filtradas = doacoes
 
   return (
     <main className="page">
@@ -118,10 +156,6 @@ export default function Home() {
             <option value="">Todas as categorias</option>
             {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
-          <select className="input" value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
-            <option value="">Todas as cidades</option>
-            {cidades.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
           <input
             className="input"
             type="number"
@@ -139,7 +173,57 @@ export default function Home() {
             onChange={e => setValidadeMinFiltro(e.target.value)}
             aria-label="Filtro por data de validade mínima"
           />
+          {cidades.length > 0 && (
+            <div className="cidades-combo" ref={comboRef}>
+              <button
+                className="input cidades-combo-trigger"
+                onClick={() => setComboAberta(prev => !prev)}
+                aria-haspopup="listbox"
+                aria-expanded={comboAberta}
+                aria-label="Filtro por cidade"
+              >
+                {cidadesSelecionadas.size === 0
+                  ? 'Todas as cidades'
+                  : `${cidadesSelecionadas.size} cidade${cidadesSelecionadas.size > 1 ? 's' : ''} selecionada${cidadesSelecionadas.size > 1 ? 's' : ''}`}
+                <span className="cidades-combo-arrow">{comboAberta ? '▲' : '▼'}</span>
+              </button>
+              {comboAberta && (
+                <div className="cidades-combo-menu" role="listbox">
+                  <div className="cidades-combo-acoes">
+                    <button
+                      className="btn-secondary btn-sm"
+                      onClick={selecionarTodasCidades}
+                      aria-label="Selecionar todas as cidades"
+                    >
+                      Todas
+                    </button>
+                    <button
+                      className="btn-secondary btn-sm"
+                      onClick={limparSelecaoCidades}
+                      aria-label="Limpar seleção de cidades"
+                    >
+                      Limpar
+                    </button>
+                  </div>
+                  <div className="cidades-opcoes">
+                    {cidades.map(cidade => (
+                      <label key={cidade} className="cidade-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={cidadesSelecionadas.has(cidade)}
+                          onChange={() => toggleCidade(cidade)}
+                          aria-label={`Filtrar por ${cidade}`}
+                        />
+                        {cidade}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
         <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
       </section>
 

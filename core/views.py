@@ -588,6 +588,16 @@ def view_doacao(request):
                 expira_em__gte=data_validade_min,
             )
 
+        cidades_param = request.query_params.get("cidades")
+        if cidades_param:
+            cidades_lista = [c.strip() for c in cidades_param.split(",") if c.strip()]
+            if cidades_lista:
+                doacao_obj = doacao_obj.filter(cidade__in=cidades_lista)
+
+        busca = request.query_params.get("busca")
+        if busca:
+            doacao_obj = doacao_obj.filter(titulo__icontains=busca)
+
         serializer = DoacaoSerializer(doacao_obj, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},
@@ -627,6 +637,22 @@ def view_doacao(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"msg": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(["GET"])
+def view_doacao_cidades(request):
+    """Retorna lista ordenada de cidades distintas que possuem doações cadastradas."""
+    cidades = (
+        Doacao.objects.exclude(cidade__isnull=True)
+        .exclude(cidade="")
+        .values_list("cidade", flat=True)
+        .distinct()
+        .order_by("cidade")
+    )
+    return Response(
+        {"msg": "Successfully retrieved data", "data": list(cidades)},
+        status=status.HTTP_200_OK,
+    )
 
 
 # SolicitacaoDoacao Views
