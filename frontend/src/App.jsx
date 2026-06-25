@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import DonationDetail from './pages/DonationDetail'
 import CreateDonation from './pages/CreateDonation'
 import UserProfile from './pages/UserProfile'
+import PublicUserProfile from './pages/PublicUserProfile'
 import Register from './pages/Register'
 
 function Router() {
@@ -15,6 +16,10 @@ function Router() {
   if (path === '/register') return <Register />
   if (path === '/create') return <CreateDonation />
   if (path === '/profile') return <UserProfile />
+  if (path.startsWith('/users/')) {
+    const id = path.replace('/users/', '')
+    return <PublicUserProfile id={id} />
+  }
   if (path.startsWith('/donation/')) {
     const id = path.replace('/donation/', '')
     return <DonationDetail id={id} />

@@ -440,7 +440,7 @@ def test_qualquer_usuario_pode_listar_avaliacoes_de_uma_doacao(api_client):
         nota=5,
         comentario="Avaliacao da primeira doacao.",
     )
-    Avaliacao.objects.create(
+    avaliacao_dois = Avaliacao.objects.create(
         doacao=doacao_dois,
         avaliador=receptor,
         avaliado=doador,
@@ -454,6 +454,12 @@ def test_qualquer_usuario_pode_listar_avaliacoes_de_uma_doacao(api_client):
     assert [avaliacao["id"] for avaliacao in response.data["data"]] == [
         avaliacao_um.id,
     ]
+
+    response_avaliado = api_client.get(f"/avaliacao/?avaliado={doador.id}", format="json")
+
+    assert response_avaliado.status_code == 200
+    ids_avaliado = {avaliacao["id"] for avaliacao in response_avaliado.data["data"]}
+    assert ids_avaliado == {avaliacao_um.id, avaliacao_dois.id}
 
 
 @pytest.mark.django_db
@@ -502,6 +508,80 @@ def test_doacao_expira_em_e_definida_pela_menor_data_validade(api_client):
     detail = api_client.get(f"/doacao/{doacao_id}/", format="json")
     assert detail.status_code == 200
     assert detail.data["data"]["expira_em"] == "2026-10-01"
+
+
+@pytest.mark.django_db
+def test_estimativa_peso_da_doacao_e_calculada_pelos_alimentos(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    categoria = Categoria.objects.create(nome=f"Categoria Peso {seed}")
+
+    resp_doacao = api_client.post(
+        "/doacao/",
+        data={
+            "doador": doador.id,
+            "receptor": None,
+            "titulo": f"Doacao Peso {seed}",
+            "descricao": "Teste de peso automatico",
+            "status": "disponivel",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua Peso",
+            "numero": "10",
+            "complemento": "",
+            "estimativa_peso": "99.00",
+        },
+        format="json",
+    )
+    assert resp_doacao.status_code == 201
+    doacao_id = resp_doacao.data["data"]["id"]
+
+    alimentos = [
+        ("Arroz", "2.00", "kg"),
+        ("Feijao", "500.00", "g"),
+        ("Leite", "1.00", "l"),
+        ("Molho", "250.00", "ml"),
+        ("Pao", "10.00", "unidade"),
+    ]
+    alimento_ids = {}
+    for nome, quantidade, unidade in alimentos:
+        resp_alimento = api_client.post(
+            "/alimento/",
+            data={
+                "categoria": categoria.id,
+                "doacao": doacao_id,
+                "nome": f"{nome} {seed}",
+                "data_validade": "2026-12-31",
+                "quantidade": quantidade,
+                "unidade": unidade,
+            },
+            format="json",
+        )
+        assert resp_alimento.status_code == 201
+        alimento_ids[nome] = resp_alimento.data["data"]["id"]
+
+    detail = api_client.get(f"/doacao/{doacao_id}/", format="json")
+
+    assert detail.status_code == 200
+    assert detail.data["data"]["estimativa_peso"] == "3.75"
+
+    resp_update = api_client.patch(
+        "/alimento/",
+        data={"id": alimento_ids["Feijao"], "quantidade": "1000.00"},
+        format="json",
+    )
+    assert resp_update.status_code == 200
+
+    detail_atualizado = api_client.get(f"/doacao/{doacao_id}/", format="json")
+    assert detail_atualizado.data["data"]["estimativa_peso"] == "4.25"
+
+    resp_delete = api_client.delete(f"/alimento/{alimento_ids['Leite']}/", format="json")
+    assert resp_delete.status_code == 204
+
+    detail_apos_delete = api_client.get(f"/doacao/{doacao_id}/", format="json")
+    assert detail_apos_delete.data["data"]["estimativa_peso"] == "3.25"
 
 
 @pytest.mark.django_db

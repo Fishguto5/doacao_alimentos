@@ -117,4 +117,18 @@ describe('CreateDonation Component Validations', () => {
     fireEvent.change(cepInput, { target: { value: '13a00b00-c' } })
     expect(cepInput.value).toBe('130000')
   })
+
+  it('calculates estimated weight from donation items', async () => {
+    render(<CreateDonation />)
+
+    expect(screen.getByDisplayValue('0.00')).toBeInTheDocument()
+
+    const quantidadeInput = document.querySelector('input[type="number"]')
+    const unidadeSelect = screen.getByDisplayValue('kg')
+
+    fireEvent.change(quantidadeInput, { target: { value: '500' } })
+    fireEvent.change(unidadeSelect, { target: { value: 'g' } })
+
+    expect(screen.getByDisplayValue('0.50')).toBeInTheDocument()
+  })
 })

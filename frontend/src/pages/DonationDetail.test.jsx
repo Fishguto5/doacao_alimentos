@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import DonationDetail from './DonationDetail'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
+import { navigate } from '../router'
 
 vi.mock('../api', () => ({
   api: {
@@ -16,6 +17,10 @@ vi.mock('../api', () => ({
 
 vi.mock('../context/UserContext', () => ({
   useUser: vi.fn(),
+}))
+
+vi.mock('../router', () => ({
+  navigate: vi.fn(),
 }))
 
 describe('DonationDetail', () => {
@@ -65,6 +70,18 @@ describe('DonationDetail', () => {
     expect(image).toBeInTheDocument()
     expect(image).toHaveAttribute('src', '/media/doacoes/test.jpg')
     expect(api.getAvaliacoes).toHaveBeenCalledWith({ doacao: 1 })
+  })
+
+  it('opens the public donor profile from the donation detail', async () => {
+    useUser.mockReturnValue({ user: { id: 2 } })
+    mockDonationDetail({ receptor: 2 })
+
+    render(<DonationDetail id={1} />)
+
+    const donorButton = await screen.findByRole('button', { name: /Doador Teste/i })
+    fireEvent.click(donorButton)
+
+    expect(navigate).toHaveBeenCalledWith('#/users/1')
   })
 
   it('shows rating action only to the receiver of a completed donation', async () => {

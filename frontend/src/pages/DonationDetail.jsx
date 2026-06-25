@@ -210,7 +210,12 @@ export default function DonationDetail({ id }) {
             {doacao.cidade && <div className="meta-card"><span className="meta-label">Local</span><span>📍 {doacao.bairro ? `${doacao.bairro}, ` : ''}{doacao.cidade} – {doacao.estado}</span></div>}
             {doacao.estimativa_peso && <div className="meta-card"><span className="meta-label">Peso estimado</span><span>⚖️ {doacao.estimativa_peso} kg</span></div>}
             {doacao.expira_em && <div className="meta-card"><span className="meta-label">Expira em</span><span>📅 {new Date(doacao.expira_em).toLocaleDateString('pt-BR')}</span></div>}
-            {doador && <div className="meta-card"><span className="meta-label">Doador</span><span>👤 {doador.nome}</span></div>}
+            {doador && (
+              <div className="meta-card">
+                <span className="meta-label">Doador</span>
+                <button className="profile-link" onClick={() => navigate(`#/users/${doador.id}`)}>👤 {doador.nome}</button>
+              </div>
+            )}
           </div>
 
           {alimentos.length > 0 && (

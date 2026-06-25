@@ -297,6 +297,8 @@ select.input { appearance: auto; }
 }
 .meta-card { background: var(--green-50); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; display: flex; flex-direction: column; gap: 4px; }
 .meta-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.profile-link { color: var(--green-800); font-weight: 600; text-align: left; text-decoration: underline; width: fit-content; }
+.profile-link:hover { color: var(--green-600); }
 
 /* ── Sidebar card ───────────────────────────── */
 .detail-sidebar { display: flex; flex-direction: column; gap: 16px; }
@@ -417,6 +419,13 @@ select.input { appearance: auto; }
 .tab-header { display: flex; justify-content: flex-end; margin-bottom: 16px; }
 .profile-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
 .profile-info-grid > div { display: flex; flex-direction: column; gap: 4px; }
+.public-profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.public-profile-stats > div { background: var(--green-50); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+.public-profile-stat-value { color: var(--green-900); font-size: 22px; font-weight: 700; }
+.public-empty-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 16px; }
+.ratings-list { display: flex; flex-direction: column; gap: 10px; }
+.rating-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rating-author { color: var(--text-muted); font-size: 13px; margin-bottom: 6px; }
 
 /* ── Solicitacoes / Notificacoes ────────────── */
 .solicitacoes-list { display: flex; flex-direction: column; gap: 12px; }
