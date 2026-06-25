@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v0.5.0 (2026-06-25)
+
+### Bug Fixes
+
+- Fixing ruff error
+  ([`f97bfa5`](https://github.com/mc656-1s2026/doacao_alimentos/commit/f97bfa5204f435f289009a9f5af4b034feba1318))
+
+### Chores
+
+- Update no front
+  ([`807e01d`](https://github.com/mc656-1s2026/doacao_alimentos/commit/807e01d0e6bbf7d0789d44e656a1047a25655494))
+
+### Features
+
+- Filtro de doação por conjunto de cidades
+  ([`cd62cef`](https://github.com/mc656-1s2026/doacao_alimentos/commit/cd62cef5cb4448da3a5eb9c80dddf702d73372bd))
+
+- Implementando filtro por substring do título da doação
+  ([`f6a43de`](https://github.com/mc656-1s2026/doacao_alimentos/commit/f6a43de7a94d3b8f6d55a1c83d65f8c7a206c30e))
+
+
 ## v0.4.0 (2026-06-23)
 
 ### Chores
