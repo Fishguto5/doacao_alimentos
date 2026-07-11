@@ -1063,87 +1063,90 @@ def test_listagem_de_doacoes_pode_filtrar_por_peso_maximo(api_client):
 
 @pytest.mark.django_db
 def test_listagem_de_doacoes_pode_filtrar_por_validade_minima(api_client):
+    """
+    TÉCNICA DE TESTE: ANÁLISE DE VALOR LIMITE (AVL) & CLASSES DE EQUIVALÊNCIA (PCE)
+    Unidade sob Teste: Filtro por data de validade mínima na listagem de doações (query param 'validade_min')
+    
+    Este teste cria doações em posições estratégicas ao redor da data limite do filtro 
+    (fronteira) para garantir que apenas doações com expiração maior ou igual sejam retornadas.
+    """
     seed = uuid.uuid4().hex[:8]
     doador = _create_usuario(seed, "Doador")
 
-    doacao_valida = Doacao.objects.create(
-        doador=doador,
-        receptor=None,
-        titulo=f"Doacao Valida {seed}",
-        descricao="Validade futura",
-        status="disponivel",
-        cep="13000000",
-        cidade="Campinas",
-        estado="SP",
-        bairro="Centro",
-        logradouro="Rua A",
-        numero="10",
-        complemento="",
-        estimativa_peso="2.00",
-        expira_em="2030-12-31",
-    )
-    doacao_proxima = Doacao.objects.create(
-        doador=doador,
-        receptor=None,
-        titulo=f"Doacao Proxima {seed}",
-        descricao="Validade proxima",
-        status="disponivel",
-        cep="13000000",
-        cidade="Campinas",
-        estado="SP",
-        bairro="Centro",
-        logradouro="Rua B",
-        numero="20",
-        complemento="",
-        estimativa_peso="3.00",
-        expira_em="2027-01-15",
-    )
-    Doacao.objects.create(
-        doador=doador,
-        receptor=None,
-        titulo=f"Doacao Expirada {seed}",
-        descricao="Validade passada",
-        status="disponivel",
-        cep="13000000",
-        cidade="Campinas",
-        estado="SP",
-        bairro="Centro",
-        logradouro="Rua C",
-        numero="30",
-        complemento="",
-        estimativa_peso="4.00",
-        expira_em="2020-01-01",
-    )
-    # doação sem expira_em não deve aparecer no resultado
-    Doacao.objects.create(
-        doador=doador,
-        receptor=None,
-        titulo=f"Doacao Sem Validade {seed}",
-        descricao="Sem data de validade",
-        status="disponivel",
-        cep="13000000",
-        cidade="Campinas",
-        estado="SP",
-        bairro="Centro",
-        logradouro="Rua D",
-        numero="40",
-        complemento="",
-        estimativa_peso="5.00",
-        expira_em=None,
+    # --- ANÁLISE DE VALOR LIMITE (AVL) ---
+    # Data limite estabelecida para a busca: "2027-01-01"
+    
+    # 1. Caso Limite Inferior Externo (T - 1 dia): 
+    # Expira em "2026-12-31". Está fora da classe válida. Não deve ser retornada.
+    doacao_abaixo_limite = Doacao.objects.create(
+        doador=doador, receptor=None, titulo=f"D_Abaixo {seed}", status="disponivel",
+        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
+        logradouro="Rua B", numero="10", estimativa_peso="2.00",
+        expira_em="2026-12-31"
     )
 
+    # 2. Caso Limite Exato (T): 
+    # Expira em "2027-01-01". Está exatamente na fronteira. Deve ser retornada.
+    doacao_no_limite = Doacao.objects.create(
+        doador=doador, receptor=None, titulo=f"D_NoLimite {seed}", status="disponivel",
+        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
+        logradouro="Rua B", numero="20", estimativa_peso="3.00",
+        expira_em="2027-01-01"
+    )
+
+    # 3. Caso Limite Superior Interno (T + 1 dia): 
+    # Expira em "2027-01-02". Está dentro da classe válida. Deve ser retornada.
+    doacao_acima_limite = Doacao.objects.create(
+        doador=doador, receptor=None, titulo=f"D_Acima {seed}", status="disponivel",
+        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
+        logradouro="Rua B", numero="30", estimativa_peso="4.00",
+        expira_em="2027-01-02"
+    )
+
+    # 4. Caso Especial da Classe (Nulo):
+    # Sem data de expiração definida. Deve ser omitida da listagem.
+    doacao_sem_validade = Doacao.objects.create(
+        doador=doador, receptor=None, titulo=f"D_SemValidade {seed}", status="disponivel",
+        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
+        logradouro="Rua B", numero="40", estimativa_peso="5.00",
+        expira_em=None
+    )
+
+    # Execução da chamada à API passando a data limite estabelecida
     response = api_client.get("/doacao/?validade_min=2027-01-01", format="json")
 
     assert response.status_code == 200
-    ids = {item["id"] for item in response.data["data"]}
-    assert ids == {doacao_valida.id, doacao_proxima.id}
+    ids_retornados = {item["id"] for item in response.data["data"]}
+    
+    # Asserções AVL: Apenas as doações a partir de 2027-01-01 (limite exato e acima) devem estar presentes
+    assert doacao_no_limite.id in ids_retornados, "A doação exatamente na data limite (T) deveria ter sido incluída."
+    assert doacao_acima_limite.id in ids_retornados, "A doação acima da data limite (T + 1) deveria ter sido incluída."
+    assert doacao_abaixo_limite.id not in ids_retornados, "A doação abaixo da data limite (T - 1) deveria ter sido excluída."
+    assert doacao_sem_validade.id not in ids_retornados, "Doações sem data de expiração (None) não devem ser listadas no filtro."
 
 
 @pytest.mark.django_db
-def test_listagem_de_doacoes_rejeita_data_invalida(api_client):
-    response = api_client.get("/doacao/?validade_min=nao-e-uma-data", format="json")
-
-    assert response.status_code == 400
+@pytest.mark.parametrize(
+    "data_invalida, expected_status",
+    [
+        # --- PARTICIONAMENTO EM CLASSES DE EQUIVALÊNCIA (PCE) ---
+        # Classe Inválida 1: Strings arbitrárias que não representam formato de data
+        ("nao-e-uma-data", 400),
+        # Classe Inválida 2: Formatos de data alternativos não aceitos pelo padrão ISO do backend
+        ("01/01/2027", 400),
+        ("2027.01.01", 400),
+        # Classe Inválida 3: Datas com valores de mês/dia fora do range do calendário
+        ("2027-13-01", 400),
+        ("2027-01-32", 400),
+    ]
+)
+def test_listagem_de_doacoes_rejeita_data_invalida(api_client, data_invalida, expected_status):
+    """
+    TÉCNICA DE TESTE: CLASSES DE EQUIVALÊNCIA (PCE)
+    Garante que entradas da Classe Inválida de formato de data sejam rejeitadas com HTTP 400.
+    """
+    response = api_client.get(f"/doacao/?validade_min={data_invalida}", format="json")
+    assert response.status_code == expected_status
     assert "msg" in response.data
 
 
