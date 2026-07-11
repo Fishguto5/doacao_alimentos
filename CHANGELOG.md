@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.1 (2026-07-11)
+
+### Bug Fixes
+
+- Corrige lint E501 e formatação black no backend e testes
+  ([`2431554`](https://github.com/mc656-1s2026/doacao_alimentos/commit/2431554ebef69482b8fb70827f6562f709d509cb))
+
+### Testing
+
+- Implementação de teste PCE e AVL para unidades de medida, comprimento de imagens e data de
+  validade. Configuração do CI.
+  ([`6ddfb4a`](https://github.com/mc656-1s2026/doacao_alimentos/commit/6ddfb4af35061436469c85ce7dd4248810091795))
+
+- Implementação de validação e teste para a quantidade nas unidades de medida
+  ([`ce5d591`](https://github.com/mc656-1s2026/doacao_alimentos/commit/ce5d591a513cde856dca4ef7e0ebfd751dffa230))
+
+
 ## v0.5.0 (2026-06-25)
 
 ### Bug Fixes

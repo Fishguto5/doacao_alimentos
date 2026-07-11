@@ -47,9 +47,10 @@ upload_to_release = true
 
 
 
+
 [project]
 name = "doacao-alimentos-backend"
-version = "0.5.0"
+version = "0.5.1"
 description = "Backend Django para a plataforma de doacao de alimentos"
 readme = "README.md"
 requires-python = ">=3.12"
