@@ -635,19 +635,19 @@ def test_estimativa_peso_da_doacao_e_calculada_pelos_alimentos(api_client):
 
     resp_update = api_client.patch(
         "/alimento/",
-        data={"id": alimento_ids["Feijao"], "quantidade": "1000.00"},
+        data={"id": alimento_ids["Feijao"], "quantidade": "900.00"},
         format="json",
     )
     assert resp_update.status_code == 200
 
     detail_atualizado = api_client.get(f"/doacao/{doacao_id}/", format="json")
-    assert detail_atualizado.data["data"]["estimativa_peso"] == "4.25"
+    assert detail_atualizado.data["data"]["estimativa_peso"] == "4.15"
 
     resp_delete = api_client.delete(f"/alimento/{alimento_ids['Leite']}/", format="json")
     assert resp_delete.status_code == 204
 
     detail_apos_delete = api_client.get(f"/doacao/{doacao_id}/", format="json")
-    assert detail_apos_delete.data["data"]["estimativa_peso"] == "3.25"
+    assert detail_apos_delete.data["data"]["estimativa_peso"] == "3.15"
 
 
 @pytest.mark.django_db
@@ -1376,3 +1376,86 @@ def test_filtro_por_titulo_e_case_insensitive(api_client):
     assert response.status_code == 200
     ids = {item["id"] for item in response.data["data"]}
     assert ids == {doacao_arroz.id}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "unidade, quantidade, expected_status",
+    [
+        # unidade - valid (1, 100, 1.00)
+        ("unidade", "1.00", 201),
+        ("unidade", "50.00", 201),
+        ("unidade", "100.00", 201),
+        # unidade - invalid (0, -1, 1.5, 101)
+        ("unidade", "0.00", 400),
+        ("unidade", "-5.00", 400),
+        ("unidade", "1.50", 400),
+        ("unidade", "101.00", 400),
+
+        # kg - valid (0.01, 50.00, 100.00)
+        ("kg", "0.01", 201),
+        ("kg", "50.50", 201),
+        ("kg", "100.00", 201),
+        # kg - invalid (0.00, -1.00, 100.01)
+        ("kg", "0.00", 400),
+        ("kg", "-1.00", 400),
+        ("kg", "100.01", 400),
+
+        # g - valid (50.00, 500.00, 999.00)
+        ("g", "50.00", 201),
+        ("g", "500.00", 201),
+        ("g", "999.00", 201),
+        # g - invalid (49.00, 250.50, 1000.00, -10.00)
+        ("g", "49.00", 400),
+        ("g", "250.50", 400),
+        ("g", "1000.00", 400),
+        ("g", "-10.00", 400),
+
+        # l - valid (0.01, 1.50, 100.00)
+        ("l", "0.01", 201),
+        ("l", "1.50", 201),
+        ("l", "100.00", 201),
+        # l - invalid (0.00, -2.00, 100.01)
+        ("l", "0.00", 400),
+        ("l", "-2.00", 400),
+        ("l", "100.01", 400),
+
+        # ml - valid (50.00, 350.00, 999.00)
+        ("ml", "50.00", 201),
+        ("ml", "350.00", 201),
+        ("ml", "999.00", 201),
+        # ml - invalid (49.00, 350.50, 1000.00, -5.00)
+        ("ml", "49.00", 400),
+        ("ml", "350.50", 400),
+        ("ml", "1000.00", 400),
+        ("ml", "-5.00", 400),
+    ],
+)
+def test_validacao_quantidade_por_unidade_medida(api_client, unidade, quantidade, expected_status):
+    seed = uuid.uuid4().hex[:8]
+    doador = _create_usuario(seed, "Doador")
+    categoria = Categoria.objects.create(nome=f"Categoria Teste {seed}")
+    doacao = Doacao.objects.create(
+        doador=doador,
+        titulo=f"Doacao Teste {seed}",
+        status="disponivel",
+        cidade="Campinas",
+        estado="SP",
+    )
+
+    response = api_client.post(
+        "/alimento/",
+        data={
+            "categoria": categoria.id,
+            "doacao": doacao.id,
+            "nome": f"Alimento Teste {seed}",
+            "data_validade": "2026-12-31",
+            "quantidade": quantidade,
+            "unidade": unidade,
+        },
+        format="json",
+    )
+
+    assert response.status_code == expected_status
+    if expected_status == 400:
+        assert "quantidade" in response.data

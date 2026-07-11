@@ -131,4 +131,36 @@ describe('CreateDonation Component Validations', () => {
 
     expect(screen.getByDisplayValue('0.50')).toBeInTheDocument()
   })
+
+  it('validates quantity input based on unit rules', async () => {
+    render(<CreateDonation />)
+    const quantidadeInput = document.querySelector('input[type="number"]')
+    const unidadeSelect = screen.getByDisplayValue('kg')
+
+    // Test kg - invalid (exceeds 100)
+    fireEvent.change(quantidadeInput, { target: { value: '101' } })
+    expect(quantidadeInput.validationMessage).toBe("A quantidade máxima para 'kg' é 100.")
+
+    // Test kg - valid (100)
+    fireEvent.change(quantidadeInput, { target: { value: '100' } })
+    expect(quantidadeInput.validationMessage).toBe("")
+
+    // Test g - invalid decimal (250.50)
+    fireEvent.change(unidadeSelect, { target: { value: 'g' } })
+    fireEvent.change(quantidadeInput, { target: { value: '250.5' } })
+    expect(quantidadeInput.validationMessage).toBe("A quantidade para 'g' deve ser um número inteiro.")
+
+    // Test g - invalid min (49)
+    fireEvent.change(quantidadeInput, { target: { value: '49' } })
+    expect(quantidadeInput.validationMessage).toBe("A quantidade mínima para 'g' é 50.")
+
+    // Test g - invalid max (1000)
+    fireEvent.change(quantidadeInput, { target: { value: '1000' } })
+    expect(quantidadeInput.validationMessage).toBe("A quantidade máxima para 'g' é 999. Para 1000 ou mais, use a unidade superior correspondente.")
+
+    // Test unidade - invalid decimal (1.5)
+    fireEvent.change(unidadeSelect, { target: { value: 'unidade' } })
+    fireEvent.change(quantidadeInput, { target: { value: '1.5' } })
+    expect(quantidadeInput.validationMessage).toBe("A quantidade para a unidade 'unidade' deve ser um número inteiro.")
+  })
 })

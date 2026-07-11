@@ -39,6 +39,40 @@ function quantidadeEmKg(alimento) {
   return 0
 }
 
+function getQuantidadeError(quantidadeStr, unidade) {
+  const quantidade = Number(quantidadeStr)
+  if (!quantidadeStr || isNaN(quantidade)) {
+    return 'Informe um número válido para a quantidade.'
+  }
+  if (quantidade <= 0) {
+    return 'A quantidade deve ser maior que zero.'
+  }
+
+  if (unidade === 'unidade') {
+    if (quantidade % 1 !== 0) {
+      return "A quantidade para a unidade 'unidade' deve ser um número inteiro."
+    }
+    if (quantidade > 100) {
+      return "A quantidade máxima para 'unidade' é 100."
+    }
+  } else if (unidade === 'kg' || unidade === 'l') {
+    if (quantidade > 100) {
+      return `A quantidade máxima para '${unidade}' é 100.`
+    }
+  } else if (unidade === 'g' || unidade === 'ml') {
+    if (quantidade % 1 !== 0) {
+      return `A quantidade para '${unidade}' deve ser um número inteiro.`
+    }
+    if (quantidade < 50) {
+      return `A quantidade mínima para '${unidade}' é 50.`
+    }
+    if (quantidade > 999) {
+      return `A quantidade máxima para '${unidade}' é 999. Para 1000 ou mais, use a unidade superior correspondente.`
+    }
+  }
+  return null
+}
+
 export default function CreateDonation() {
   const { user } = useUser()
   const [categorias, setCategorias] = useState([])
@@ -153,6 +187,15 @@ export default function CreateDonation() {
     const validAlimentos = alimentos.filter(a => a.nome.trim() && a.categoria && a.quantidade && Number(a.quantidade) > 0)
     if (validAlimentos.length === 0) {
       return setError('Adicione pelo menos um item (alimento) válido com nome, categoria e quantidade maior que zero.')
+    }
+
+    // Validação específica das regras de quantidade/unidade
+    for (let i = 0; i < alimentos.length; i++) {
+      const a = alimentos[i]
+      const qtyErr = getQuantidadeError(a.quantidade, a.unidade)
+      if (qtyErr) {
+        return setError(`Erro no item ${i + 1} (${a.nome || 'Sem nome'}): ${qtyErr}`)
+      }
     }
 
 
@@ -364,7 +407,22 @@ export default function CreateDonation() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Quantidade *</label>
-                  <input className="input" type="number" required min="0" step="0.01" value={a.quantidade} onChange={e => updateAlimento(i, 'quantidade', e.target.value)} />
+                  <input
+                    className="input"
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={a.quantidade}
+                    onChange={e => {
+                      const val = e.target.value
+                      updateAlimento(i, 'quantidade', val)
+                      e.target.setCustomValidity(getQuantidadeError(val, a.unidade) || '')
+                    }}
+                    onInvalid={e => {
+                      e.target.setCustomValidity(getQuantidadeError(e.target.value, a.unidade) || '')
+                    }}
+                  />
                 </div>
                 <div className="form-group form-group-sm">
                   <label>Unidade *</label>
