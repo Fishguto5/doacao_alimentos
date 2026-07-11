@@ -110,27 +110,61 @@ def test_criar_doacao_sem_imagem(api_client):
     assert response.data["data"]["imagem"] == "" or response.data["data"]["imagem"] is None
 
 
+def _create_padded_image(name, size_in_bytes):
+    """
+    Helper para criar uma imagem PNG perfeitamente válida estruturalmente,
+    mas com o tamanho exato de bytes especificado (usando preenchimento).
+    """
+    image = Image.new("RGB", (1, 1), color="red")
+    image_io = io.BytesIO()
+    image.save(image_io, format="PNG")
+    png_bytes = image_io.getvalue()
+
+    padding_needed = size_in_bytes - len(png_bytes)
+    if padding_needed > 0:
+        png_bytes = png_bytes + b"\x00" * padding_needed
+
+    return SimpleUploadedFile(name, png_bytes, content_type="image/png")
+
+
 @pytest.mark.django_db
-def test_validacao_tamanho_maximo_imagem(api_client):
-    """Teste: validar que imagens maiores que 5MB são rejeitadas."""
+@pytest.mark.parametrize(
+    "tamanho_bytes, expected_status, cenario_info",
+    [
+        # --- PARTICIONAMENTO EM CLASSES DE EQUIVALÊNCIA (PCE) & ANÁLISE DE VALOR LIMITE (AVL) ---
+        # A classe de equivalência válida aceita imagens com tamanho <= 5 MB (5.242.880 bytes)
+        # A classe de equivalência inválida rejeita imagens com tamanho > 5 MB (5.242.880 bytes)
+        # 1. Classe Válida (PCE) - Imagem Pequena comum
+        (100 * 1024, 201, "Imagem comum de 100KB (Classe Válida)"),
+        # 2. Limite Superior Válido (AVL - T)
+        (
+            5 * 1024 * 1024,
+            201,
+            "Imagem exatamente no limite de 5MB " "(Limite Superior Exato Válido)",
+        ),
+        # 3. Limite Superior Inválido (AVL - T + 1 byte)
+        (5 * 1024 * 1024 + 1, 400, "Imagem com 5MB + 1 byte (Limite Superior Externo Inválido)"),
+    ],
+)
+def test_validacao_tamanho_maximo_imagem(api_client, tamanho_bytes, expected_status, cenario_info):
+    """
+    TÉCNICA DE TESTE: ANÁLISE DE VALOR LIMITE (AVL) & CLASSES DE EQUIVALÊNCIA (PCE)
+    Unidade sob Teste: DoacaoSerializer.validate_imagem (tamanho máximo de imagem)
+
+    Valida se a API do backend rejeita imagens com tamanho de arquivo estritamente maior
+    que 5MB na fronteira exata de bytes.
+    """
     seed = uuid.uuid4().hex[:8]
     doador = _create_usuario(seed, "Doador")
-
-    # Criar uma imagem grande não compactada (> 5MB)
-    image = Image.new("RGB", (3000, 3000), color="blue")
-    image_io = io.BytesIO()
-    image.save(image_io, format="BMP")
-    image_io.seek(0)
-
-    imagem_grande = SimpleUploadedFile("grande.bmp", image_io.getvalue(), content_type="image/bmp")
+    imagem = _create_padded_image("doacao.png", tamanho_bytes)
 
     response = api_client.post(
         "/doacao/",
         data={
             "doador": doador.id,
-            "titulo": f"Doacao Imagem Grande {seed}",
-            "descricao": "Teste imagem grande",
-            "imagem": imagem_grande,
+            "titulo": f"Doacao Imagem {seed}",
+            "descricao": f"Teste de upload: {cenario_info}",
+            "imagem": imagem,
             "status": "disponivel",
             "cep": "13000000",
             "cidade": "Campinas",
@@ -144,8 +178,11 @@ def test_validacao_tamanho_maximo_imagem(api_client):
         format="multipart",
     )
 
-    assert response.status_code == 400
-    assert "imagem" in response.data
+    assert response.status_code == expected_status, f"Falha no cenário: {cenario_info}"
+    if expected_status == 400:
+        assert "imagem" in response.data, (
+            "Deveria conter uma mensagem de erro de validação para o campo " "'imagem'."
+        )
 
 
 @pytest.mark.django_db

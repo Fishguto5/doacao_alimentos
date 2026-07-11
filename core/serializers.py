@@ -149,6 +149,60 @@ class SolicitacaoDoacaoSerializer(serializers.ModelSerializer):
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        instance = getattr(self, "instance", None)
+        unidade = attrs.get("unidade", getattr(instance, "unidade", None))
+        quantidade = attrs.get("quantidade", getattr(instance, "quantidade", None))
+
+        if quantidade is not None and unidade is not None:
+            if quantidade <= 0:
+                raise ValidationError({"quantidade": "A quantidade deve ser maior que zero."})
+
+            if unidade == "unidade":
+                if quantidade % 1 != 0:
+                    raise ValidationError(
+                        {
+                            "quantidade": (
+                                "A quantidade para a unidade 'unidade' "
+                                "deve ser um número inteiro."
+                            )
+                        }
+                    )
+                if quantidade > 100:
+                    raise ValidationError(
+                        {"quantidade": "A quantidade máxima para 'unidade' é 100."}
+                    )
+            elif unidade in {"kg", "l"}:
+                if quantidade > 100:
+                    raise ValidationError(
+                        {"quantidade": (f"A quantidade máxima para '{unidade}' é 100.")}
+                    )
+            elif unidade in {"g", "ml"}:
+                if quantidade % 1 != 0:
+                    raise ValidationError(
+                        {
+                            "quantidade": (
+                                f"A quantidade para '{unidade}' deve ser um " "número inteiro."
+                            )
+                        }
+                    )
+                if quantidade < 50:
+                    raise ValidationError(
+                        {"quantidade": (f"A quantidade mínima para '{unidade}' é 50.")}
+                    )
+                if quantidade > 999:
+                    raise ValidationError(
+                        {
+                            "quantidade": (
+                                f"A quantidade máxima para '{unidade}' é 999. "
+                                "Para 1000 ou mais, use a unidade superior "
+                                "correspondente."
+                            )
+                        }
+                    )
+
+        return attrs
+
     def create(self, validated_data):
         alimento = super().create(validated_data)
         recompute_doacao_derivados(alimento.doacao)
