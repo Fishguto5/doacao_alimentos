@@ -1065,9 +1065,10 @@ def test_listagem_de_doacoes_pode_filtrar_por_peso_maximo(api_client):
 def test_listagem_de_doacoes_pode_filtrar_por_validade_minima(api_client):
     """
     TÉCNICA DE TESTE: ANÁLISE DE VALOR LIMITE (AVL) & CLASSES DE EQUIVALÊNCIA (PCE)
-    Unidade sob Teste: Filtro por data de validade mínima na listagem de doações (query param 'validade_min')
-    
-    Este teste cria doações em posições estratégicas ao redor da data limite do filtro 
+    Unidade sob Teste: Filtro por data de validade mínima
+    na listagem de doações (query param 'validade_min')
+
+    Este teste cria doações em posições estratégicas ao redor da data limite do filtro
     (fronteira) para garantir que apenas doações com expiração maior ou igual sejam retornadas.
     """
     seed = uuid.uuid4().hex[:8]
@@ -1075,41 +1076,73 @@ def test_listagem_de_doacoes_pode_filtrar_por_validade_minima(api_client):
 
     # --- ANÁLISE DE VALOR LIMITE (AVL) ---
     # Data limite estabelecida para a busca: "2027-01-01"
-    
-    # 1. Caso Limite Inferior Externo (T - 1 dia): 
+
+    # 1. Caso Limite Inferior Externo (T - 1 dia):
     # Expira em "2026-12-31". Está fora da classe válida. Não deve ser retornada.
     doacao_abaixo_limite = Doacao.objects.create(
-        doador=doador, receptor=None, titulo=f"D_Abaixo {seed}", status="disponivel",
-        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
-        logradouro="Rua B", numero="10", estimativa_peso="2.00",
-        expira_em="2026-12-31"
+        doador=doador,
+        receptor=None,
+        titulo=f"D_Abaixo {seed}",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="10",
+        estimativa_peso="2.00",
+        expira_em="2026-12-31",
     )
 
-    # 2. Caso Limite Exato (T): 
+    # 2. Caso Limite Exato (T):
     # Expira em "2027-01-01". Está exatamente na fronteira. Deve ser retornada.
     doacao_no_limite = Doacao.objects.create(
-        doador=doador, receptor=None, titulo=f"D_NoLimite {seed}", status="disponivel",
-        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
-        logradouro="Rua B", numero="20", estimativa_peso="3.00",
-        expira_em="2027-01-01"
+        doador=doador,
+        receptor=None,
+        titulo=f"D_NoLimite {seed}",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="20",
+        estimativa_peso="3.00",
+        expira_em="2027-01-01",
     )
 
-    # 3. Caso Limite Superior Interno (T + 1 dia): 
+    # 3. Caso Limite Superior Interno (T + 1 dia):
     # Expira em "2027-01-02". Está dentro da classe válida. Deve ser retornada.
     doacao_acima_limite = Doacao.objects.create(
-        doador=doador, receptor=None, titulo=f"D_Acima {seed}", status="disponivel",
-        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
-        logradouro="Rua B", numero="30", estimativa_peso="4.00",
-        expira_em="2027-01-02"
+        doador=doador,
+        receptor=None,
+        titulo=f"D_Acima {seed}",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="30",
+        estimativa_peso="4.00",
+        expira_em="2027-01-02",
     )
 
     # 4. Caso Especial da Classe (Nulo):
     # Sem data de expiração definida. Deve ser omitida da listagem.
     doacao_sem_validade = Doacao.objects.create(
-        doador=doador, receptor=None, titulo=f"D_SemValidade {seed}", status="disponivel",
-        cep="13000000", cidade="Campinas", estado="SP", bairro="Centro",
-        logradouro="Rua B", numero="40", estimativa_peso="5.00",
-        expira_em=None
+        doador=doador,
+        receptor=None,
+        titulo=f"D_SemValidade {seed}",
+        status="disponivel",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua B",
+        numero="40",
+        estimativa_peso="5.00",
+        expira_em=None,
     )
 
     # Execução da chamada à API passando a data limite estabelecida
@@ -1117,12 +1150,21 @@ def test_listagem_de_doacoes_pode_filtrar_por_validade_minima(api_client):
 
     assert response.status_code == 200
     ids_retornados = {item["id"] for item in response.data["data"]}
-    
-    # Asserções AVL: Apenas as doações a partir de 2027-01-01 (limite exato e acima) devem estar presentes
-    assert doacao_no_limite.id in ids_retornados, "A doação exatamente na data limite (T) deveria ter sido incluída."
-    assert doacao_acima_limite.id in ids_retornados, "A doação acima da data limite (T + 1) deveria ter sido incluída."
-    assert doacao_abaixo_limite.id not in ids_retornados, "A doação abaixo da data limite (T - 1) deveria ter sido excluída."
-    assert doacao_sem_validade.id not in ids_retornados, "Doações sem data de expiração (None) não devem ser listadas no filtro."
+
+    # Asserções AVL: Apenas as doações a partir de 2027-01-01
+    # (limite exato e acima) devem estar presentes
+    assert (
+        doacao_no_limite.id in ids_retornados
+    ), "A doação exatamente na data limite (T) deveria ter sido incluída."
+    assert (
+        doacao_acima_limite.id in ids_retornados
+    ), "A doação acima da data limite (T + 1) deveria ter sido incluída."
+    assert (
+        doacao_abaixo_limite.id not in ids_retornados
+    ), "A doação abaixo da data limite (T - 1) deveria ter sido excluída."
+    assert (
+        doacao_sem_validade.id not in ids_retornados
+    ), "Doações sem data de expiração (None) não devem ser listadas no filtro."
 
 
 @pytest.mark.django_db
@@ -1138,7 +1180,7 @@ def test_listagem_de_doacoes_pode_filtrar_por_validade_minima(api_client):
         # Classe Inválida 3: Datas com valores de mês/dia fora do range do calendário
         ("2027-13-01", 400),
         ("2027-01-32", 400),
-    ]
+    ],
 )
 def test_listagem_de_doacoes_rejeita_data_invalida(api_client, data_invalida, expected_status):
     """
@@ -1394,7 +1436,6 @@ def test_filtro_por_titulo_e_case_insensitive(api_client):
         ("unidade", "-5.00", 400),
         ("unidade", "1.50", 400),
         ("unidade", "101.00", 400),
-
         # kg - valid (0.01, 50.00, 100.00)
         ("kg", "0.01", 201),
         ("kg", "50.50", 201),
@@ -1403,7 +1444,6 @@ def test_filtro_por_titulo_e_case_insensitive(api_client):
         ("kg", "0.00", 400),
         ("kg", "-1.00", 400),
         ("kg", "100.01", 400),
-
         # g - valid (50.00, 500.00, 999.00)
         ("g", "50.00", 201),
         ("g", "500.00", 201),
@@ -1413,7 +1453,6 @@ def test_filtro_por_titulo_e_case_insensitive(api_client):
         ("g", "250.50", 400),
         ("g", "1000.00", 400),
         ("g", "-10.00", 400),
-
         # l - valid (0.01, 1.50, 100.00)
         ("l", "0.01", 201),
         ("l", "1.50", 201),
@@ -1422,7 +1461,6 @@ def test_filtro_por_titulo_e_case_insensitive(api_client):
         ("l", "0.00", 400),
         ("l", "-2.00", 400),
         ("l", "100.01", 400),
-
         # ml - valid (50.00, 350.00, 999.00)
         ("ml", "50.00", 201),
         ("ml", "350.00", 201),
