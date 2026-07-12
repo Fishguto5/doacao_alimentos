@@ -701,7 +701,7 @@ def view_aceitar_solicitacao(request, id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    agora = datetime.datetime.now(tz=datetime.timezone.utc)
+    agora = datetime.datetime.now(tz=datetime.UTC)
 
     with transaction.atomic():
         solicitacao.status = "aceita"
