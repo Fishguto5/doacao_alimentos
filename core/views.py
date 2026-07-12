@@ -455,98 +455,82 @@ def view_auth_login(request):
     )
 
 
-# Usuario Views
-@crud_docs(UsuarioSerializer, "usuario")
-@api_view(["GET", "POST", "PUT", "PATCH"])
-def view_usuario(request):
+def _handle_crud(request, model, serializer_class, resource_name):
+    """Trata GET/POST/PUT/PATCH genérico para recursos sem filtros customizados."""
     if request.method == "GET":
-        usuario_obj = Usuario.objects.all()
-        serializer = UsuarioSerializer(usuario_obj, many=True)
+        serializer = serializer_class(model.objects.all(), many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},
             status=status.HTTP_200_OK,
         )
 
     elif request.method == "POST":
-        serializer = UsuarioSerializer(data=request.data)
+        serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {"msg": "Usuario created successfully", "data": serializer.data},
+                {"msg": f"{resource_name} created successfully", "data": serializer.data},
                 status=status.HTTP_201_CREATED,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == "PUT":
-        usuario_obj = Usuario.objects.get(pk=request.data.get("id"))
-        serializer = UsuarioSerializer(usuario_obj, data=request.data)
+        obj = model.objects.get(pk=request.data.get("id"))
+        serializer = serializer_class(obj, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {"msg": "Usuario updated successfully", "data": serializer.data},
+                {"msg": f"{resource_name} updated successfully", "data": serializer.data},
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == "PATCH":
-        usuario_obj = Usuario.objects.get(pk=request.data.get("id"))
-        serializer = UsuarioSerializer(usuario_obj, data=request.data, partial=True)
+        obj = model.objects.get(pk=request.data.get("id"))
+        serializer = serializer_class(obj, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {"msg": "Usuario updated successfully", "data": serializer.data},
+                {"msg": f"{resource_name} updated successfully", "data": serializer.data},
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"msg": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+def _handle_detail(request, model, serializer_class, resource_name, id):
+    """Trata GET/DELETE genérico para um recurso individual por ID."""
+    try:
+        obj = model.objects.get(pk=id)
+        if request.method == "GET":
+            serializer = serializer_class(obj)
+            return Response(
+                {"msg": "Successfully retrieved data", "data": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+        elif request.method == "DELETE":
+            obj.delete()
+            return Response(
+                {"msg": f"{resource_name} deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+    except model.DoesNotExist:
+        return Response({"msg": f"{resource_name} not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# Usuario Views
+@crud_docs(UsuarioSerializer, "usuario")
+@api_view(["GET", "POST", "PUT", "PATCH"])
+def view_usuario(request):
+    return _handle_crud(request, Usuario, UsuarioSerializer, "Usuario")
 
 
 # Categoria Views
 @crud_docs(CategoriaSerializer, "categoria")
 @api_view(["GET", "POST", "PUT", "PATCH"])
 def view_categoria(request):
-    if request.method == "GET":
-        categoria_obj = Categoria.objects.all()
-        serializer = CategoriaSerializer(categoria_obj, many=True)
-        return Response(
-            {"msg": "Successfully retrieved data", "data": serializer.data},
-            status=status.HTTP_200_OK,
-        )
-
-    elif request.method == "POST":
-        serializer = CategoriaSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Categoria created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PUT":
-        categoria_obj = Categoria.objects.get(pk=request.data.get("id"))
-        serializer = CategoriaSerializer(categoria_obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Categoria updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PATCH":
-        categoria_obj = Categoria.objects.get(pk=request.data.get("id"))
-        serializer = CategoriaSerializer(categoria_obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Categoria updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"msg": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return _handle_crud(request, Categoria, CategoriaSerializer, "Categoria")
 
 
 # Doacao Views
@@ -682,141 +666,23 @@ def view_doacao_cidades(request):
 @crud_docs(SolicitacaoDoacaoSerializer, "solicitacao-doacao")
 @api_view(["GET", "POST", "PUT", "PATCH"])
 def view_solicitacao_doacao(request):
-    if request.method == "GET":
-        solicitacao_obj = SolicitacaoDoacao.objects.all()
-        serializer = SolicitacaoDoacaoSerializer(solicitacao_obj, many=True)
-        return Response(
-            {"msg": "Successfully retrieved data", "data": serializer.data},
-            status=status.HTTP_200_OK,
-        )
-
-    elif request.method == "POST":
-        serializer = SolicitacaoDoacaoSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "SolicitacaoDoacao created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PUT":
-        solicitacao_obj = SolicitacaoDoacao.objects.get(pk=request.data.get("id"))
-        serializer = SolicitacaoDoacaoSerializer(solicitacao_obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "SolicitacaoDoacao updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PATCH":
-        solicitacao_obj = SolicitacaoDoacao.objects.get(pk=request.data.get("id"))
-        serializer = SolicitacaoDoacaoSerializer(solicitacao_obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "SolicitacaoDoacao updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"msg": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return _handle_crud(
+        request, SolicitacaoDoacao, SolicitacaoDoacaoSerializer, "SolicitacaoDoacao"
+    )
 
 
 # Alimento Views
 @crud_docs(AlimentoSerializer, "alimento")
 @api_view(["GET", "POST", "PUT", "PATCH"])
 def view_alimento(request):
-    if request.method == "GET":
-        alimento_obj = Alimento.objects.all()
-        serializer = AlimentoSerializer(alimento_obj, many=True)
-        return Response(
-            {"msg": "Successfully retrieved data", "data": serializer.data},
-            status=status.HTTP_200_OK,
-        )
-
-    elif request.method == "POST":
-        serializer = AlimentoSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Alimento created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PUT":
-        alimento_obj = Alimento.objects.get(pk=request.data.get("id"))
-        serializer = AlimentoSerializer(alimento_obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Alimento updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PATCH":
-        alimento_obj = Alimento.objects.get(pk=request.data.get("id"))
-        serializer = AlimentoSerializer(alimento_obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Alimento updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"msg": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return _handle_crud(request, Alimento, AlimentoSerializer, "Alimento")
 
 
 # Notificacao Views
 @crud_docs(NotificacaoSerializer, "notificacao")
 @api_view(["GET", "POST", "PUT", "PATCH"])
 def view_notificacao(request):
-    if request.method == "GET":
-        notificacao_obj = Notificacao.objects.all()
-        serializer = NotificacaoSerializer(notificacao_obj, many=True)
-        return Response(
-            {"msg": "Successfully retrieved data", "data": serializer.data},
-            status=status.HTTP_200_OK,
-        )
-
-    elif request.method == "POST":
-        serializer = NotificacaoSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Notificacao created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PUT":
-        notificacao_obj = Notificacao.objects.get(pk=request.data.get("id"))
-        serializer = NotificacaoSerializer(notificacao_obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Notificacao updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "PATCH":
-        notificacao_obj = Notificacao.objects.get(pk=request.data.get("id"))
-        serializer = NotificacaoSerializer(notificacao_obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Notificacao updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"msg": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return _handle_crud(request, Notificacao, NotificacaoSerializer, "Notificacao")
 
 
 # Avaliacao Views
@@ -935,81 +801,27 @@ def detail_docs(serializer_class, tag):
 @detail_docs(UsuarioSerializer, "usuario")
 @api_view(["GET", "DELETE"])
 def view_usuario_detail(request, id):
-    try:
-        usuario_obj = Usuario.objects.get(pk=id)
-        if request.method == "GET":
-            serializer = UsuarioSerializer(usuario_obj)
-            return Response(
-                {"msg": "Successfully retrieved data", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        elif request.method == "DELETE":
-            usuario_obj.delete()
-            return Response(
-                {"msg": "Usuario deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-            )
-    except Usuario.DoesNotExist:
-        return Response({"msg": "Usuario not found"}, status=status.HTTP_404_NOT_FOUND)
+    return _handle_detail(request, Usuario, UsuarioSerializer, "Usuario", id)
 
 
 @detail_docs(CategoriaSerializer, "categoria")
 @api_view(["GET", "DELETE"])
 def view_categoria_detail(request, id):
-    try:
-        categoria_obj = Categoria.objects.get(pk=id)
-        if request.method == "GET":
-            serializer = CategoriaSerializer(categoria_obj)
-            return Response(
-                {"msg": "Successfully retrieved data", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        elif request.method == "DELETE":
-            categoria_obj.delete()
-            return Response(
-                {"msg": "Categoria deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-            )
-    except Categoria.DoesNotExist:
-        return Response({"msg": "Categoria not found"}, status=status.HTTP_404_NOT_FOUND)
+    return _handle_detail(request, Categoria, CategoriaSerializer, "Categoria", id)
 
 
 @detail_docs(DoacaoSerializer, "doacao")
 @api_view(["GET", "DELETE"])
 def view_doacao_detail(request, id):
-    try:
-        doacao_obj = Doacao.objects.get(pk=id)
-        if request.method == "GET":
-            serializer = DoacaoSerializer(doacao_obj)
-            return Response(
-                {"msg": "Successfully retrieved data", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        elif request.method == "DELETE":
-            doacao_obj.delete()
-            return Response(
-                {"msg": "Doacao deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-            )
-    except Doacao.DoesNotExist:
-        return Response({"msg": "Doacao not found"}, status=status.HTTP_404_NOT_FOUND)
+    return _handle_detail(request, Doacao, DoacaoSerializer, "Doacao", id)
 
 
 @detail_docs(SolicitacaoDoacaoSerializer, "solicitacao-doacao")
 @api_view(["GET", "DELETE"])
 def view_solicitacao_doacao_detail(request, id):
-    try:
-        solicitacao_obj = SolicitacaoDoacao.objects.get(pk=id)
-        if request.method == "GET":
-            serializer = SolicitacaoDoacaoSerializer(solicitacao_obj)
-            return Response(
-                {"msg": "Successfully retrieved data", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        elif request.method == "DELETE":
-            solicitacao_obj.delete()
-            return Response(
-                {"msg": "SolicitacaoDoacao deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-            )
-    except SolicitacaoDoacao.DoesNotExist:
-        return Response({"msg": "SolicitacaoDoacao not found"}, status=status.HTTP_404_NOT_FOUND)
+    return _handle_detail(
+        request, SolicitacaoDoacao, SolicitacaoDoacaoSerializer, "SolicitacaoDoacao", id
+    )
 
 
 @detail_docs(AlimentoSerializer, "alimento")
@@ -1037,38 +849,10 @@ def view_alimento_detail(request, id):
 @detail_docs(NotificacaoSerializer, "notificacao")
 @api_view(["GET", "DELETE"])
 def view_notificacao_detail(request, id):
-    try:
-        notificacao_obj = Notificacao.objects.get(pk=id)
-        if request.method == "GET":
-            serializer = NotificacaoSerializer(notificacao_obj)
-            return Response(
-                {"msg": "Successfully retrieved data", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        elif request.method == "DELETE":
-            notificacao_obj.delete()
-            return Response(
-                {"msg": "Notificacao deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-            )
-    except Notificacao.DoesNotExist:
-        return Response({"msg": "Notificacao not found"}, status=status.HTTP_404_NOT_FOUND)
+    return _handle_detail(request, Notificacao, NotificacaoSerializer, "Notificacao", id)
 
 
 @detail_docs(AvaliacaoSerializer, "avaliacao")
 @api_view(["GET", "DELETE"])
 def view_avaliacao_detail(request, id):
-    try:
-        avaliacao_obj = Avaliacao.objects.get(pk=id)
-        if request.method == "GET":
-            serializer = AvaliacaoSerializer(avaliacao_obj)
-            return Response(
-                {"msg": "Successfully retrieved data", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        elif request.method == "DELETE":
-            avaliacao_obj.delete()
-            return Response(
-                {"msg": "Avaliacao deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-            )
-    except Avaliacao.DoesNotExist:
-        return Response({"msg": "Avaliacao not found"}, status=status.HTTP_404_NOT_FOUND)
+    return _handle_detail(request, Avaliacao, AvaliacaoSerializer, "Avaliacao", id)
