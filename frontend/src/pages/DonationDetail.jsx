@@ -78,15 +78,7 @@ export default function DonationDetail({ id }) {
     setSubmitting(true)
     setFeedback('')
     try {
-      const sol = solicitacoes.find(s => s.id === solId)
-      await api.updateSolicitacao({ id: solId, status: 'aceita', data_resposta: new Date().toISOString() })
-      await api.updateDoacao({ id: doacao.id, status: 'reservada', receptor: sol.solicitante, data_reserva: new Date().toISOString() })
-      // Reject others
-      await Promise.all(
-        solicitacoes
-          .filter(s => s.id !== solId && s.status === 'pendente')
-          .map(s => api.updateSolicitacao({ id: s.id, status: 'recusada', data_resposta: new Date().toISOString() }))
-      )
+      await api.aceitarSolicitacao(solId)
       setFeedback('Solicitação aceita!')
       loadData()
     } catch (err) {

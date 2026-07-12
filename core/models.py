@@ -1,17 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-# classe teste para testar POST, PUT, GET etc
-
-
-class Person(models.Model):
-    name = models.CharField(max_length=100)
-    age = models.IntegerField(default=18)
-    city = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
 
 class DoacaoStatus(models.TextChoices):
     DISPONIVEL = "disponivel", "Disponivel"

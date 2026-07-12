@@ -11,13 +11,11 @@ from core.models import (
     Categoria,
     Doacao,
     Notificacao,
-    Person,
     SolicitacaoDoacao,
     Usuario,
 )
 
 RESOURCE_MODEL_MAP = {
-    "person": Person,
     "usuario": Usuario,
     "categoria": Categoria,
     "doacao": Doacao,
@@ -82,20 +80,6 @@ def _create_dependencies(resource: str, seed: str) -> dict:
 
 
 def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, dict, dict]:
-    if resource == "person":
-        create_payload = {
-            "name": f"Pessoa {seed}",
-            "age": 25,
-            "city": "Campinas",
-        }
-        put_payload = {
-            "name": f"Pessoa Atualizada {seed}",
-            "age": 26,
-            "city": "Valinhos",
-        }
-        patch_payload = {"city": "Sumare"}
-        return create_payload, put_payload, patch_payload
-
     if resource == "usuario":
         create_payload = {
             "nome": f"Usuario {seed}",
@@ -237,7 +221,6 @@ def _payloads_for(resource: str, dependencies: dict, seed: str) -> tuple[dict, d
 
 def _assert_put_field(resource: str, response_data: dict, put_payload: dict) -> None:
     key_map = {
-        "person": "name",
         "usuario": "nome",
         "categoria": "nome",
         "doacao": "titulo",
@@ -308,7 +291,6 @@ def _usuario_payload(seed: str, prefix: str = "Usuario") -> dict:
 @pytest.mark.parametrize(
     "resource",
     [
-        "person",
         "usuario",
         "categoria",
         "doacao",

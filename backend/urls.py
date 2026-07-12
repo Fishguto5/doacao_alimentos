@@ -22,6 +22,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from core.views import (
+    view_aceitar_solicitacao,
     view_alimento,
     view_alimento_detail,
     view_auth_login,
@@ -35,8 +36,6 @@ from core.views import (
     view_doacao_detail,
     view_notificacao,
     view_notificacao_detail,
-    view_person,
-    view_person_detail,
     view_solicitacao_doacao,
     view_solicitacao_doacao_detail,
     view_usuario,
@@ -50,8 +49,6 @@ urlpatterns = [
     path("debug/", include("debug_toolbar.urls")),
     path("auth/register/", view_auth_register, name="auth_register"),
     path("auth/login/", view_auth_login, name="auth_login"),
-    path("person/", view_person, name="person"),
-    path("person/<int:id>/", view_person_detail, name="person_detail"),
     path("usuario/", view_usuario, name="usuario"),
     path("usuario/<int:id>/", view_usuario_detail, name="usuario_detail"),
     path("categoria/", view_categoria, name="categoria"),
@@ -60,6 +57,11 @@ urlpatterns = [
     path("doacao/cidades/", view_doacao_cidades, name="doacao_cidades"),
     path("doacao/<int:id>/", view_doacao_detail, name="doacao_detail"),
     path("solicitacao-doacao/", view_solicitacao_doacao, name="solicitacao_doacao"),
+    path(
+        "solicitacao-doacao/<int:id>/aceitar/",
+        view_aceitar_solicitacao,
+        name="solicitacao_doacao_aceitar",
+    ),
     path(
         "solicitacao-doacao/<int:id>/",
         view_solicitacao_doacao_detail,

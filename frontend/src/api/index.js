@@ -56,6 +56,7 @@ export const api = {
   getSolicitacoes: () => request('GET', '/solicitacao-doacao/'),
   createSolicitacao: (data) => request('POST', '/solicitacao-doacao/', data),
   updateSolicitacao: (data) => request('PATCH', '/solicitacao-doacao/', data),
+  aceitarSolicitacao: (id) => request('POST', `/solicitacao-doacao/${id}/aceitar/`),
 
   // Notificacao
   getNotificacoes: () => request('GET', '/notificacao/'),
