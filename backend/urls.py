@@ -22,6 +22,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from core.views import (
+    view_aceitar_solicitacao,
     view_alimento,
     view_alimento_detail,
     view_auth_login,
@@ -56,6 +57,11 @@ urlpatterns = [
     path("doacao/cidades/", view_doacao_cidades, name="doacao_cidades"),
     path("doacao/<int:id>/", view_doacao_detail, name="doacao_detail"),
     path("solicitacao-doacao/", view_solicitacao_doacao, name="solicitacao_doacao"),
+    path(
+        "solicitacao-doacao/<int:id>/aceitar/",
+        view_aceitar_solicitacao,
+        name="solicitacao_doacao_aceitar",
+    ),
     path(
         "solicitacao-doacao/<int:id>/",
         view_solicitacao_doacao_detail,

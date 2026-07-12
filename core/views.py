@@ -1,6 +1,7 @@
 import datetime
 
 from django.contrib.auth.hashers import check_password, identify_hasher, make_password
+from django.db import transaction
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -668,6 +669,61 @@ def view_doacao_cidades(request):
 def view_solicitacao_doacao(request):
     return _handle_crud(
         request, SolicitacaoDoacao, SolicitacaoDoacaoSerializer, "SolicitacaoDoacao"
+    )
+
+
+@api_view(["POST"])
+def view_aceitar_solicitacao(request, id):
+    """Aceita uma solicitação de doação atomicamente.
+
+    Ao aceitar uma solicitação:
+    - A solicitação escolhida passa para 'aceita'
+    - A doação passa para 'reservada' com o solicitante como receptor
+    - Todas as demais solicitações pendentes da mesma doação são 'recusada'
+
+    Toda a operação é executada em uma única transação, garantindo consistência.
+    """
+    try:
+        solicitacao = SolicitacaoDoacao.objects.select_related("doacao").get(pk=id)
+    except SolicitacaoDoacao.DoesNotExist:
+        return Response({"msg": "Solicitacao not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if solicitacao.status != "pendente":
+        return Response(
+            {"msg": "Apenas solicitacoes pendentes podem ser aceitas."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    doacao = solicitacao.doacao
+    if doacao.status != DoacaoStatus.DISPONIVEL:
+        return Response(
+            {"msg": "Apenas doacoes disponiveis podem ser reservadas."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    agora = datetime.datetime.now(tz=datetime.timezone.utc)
+
+    with transaction.atomic():
+        solicitacao.status = "aceita"
+        solicitacao.data_resposta = agora
+        solicitacao.save(update_fields=["status", "data_resposta"])
+
+        doacao.status = DoacaoStatus.RESERVADA
+        doacao.receptor = solicitacao.solicitante
+        doacao.data_reserva = agora
+        doacao.save(update_fields=["status", "receptor", "data_reserva"])
+
+        SolicitacaoDoacao.objects.filter(
+            doacao=doacao,
+            status="pendente",
+        ).exclude(
+            pk=id
+        ).update(status="recusada", data_resposta=agora)
+
+    serializer = SolicitacaoDoacaoSerializer(solicitacao)
+    return Response(
+        {"msg": "Solicitacao aceita com sucesso.", "data": serializer.data},
+        status=status.HTTP_200_OK,
     )
 
 

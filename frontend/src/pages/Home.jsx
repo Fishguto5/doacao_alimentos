@@ -182,7 +182,7 @@ export default function Home() {
                 aria-expanded={comboAberta}
                 aria-label="Filtro por cidade"
               >
-                {cidadesSelecionadas.size === 0
+                {(cidadesSelecionadas.size === 0 || cidadesSelecionadas.size === cidades.length)
                   ? 'Todas as cidades'
                   : `${cidadesSelecionadas.size} cidade${cidadesSelecionadas.size > 1 ? 's' : ''} selecionada${cidadesSelecionadas.size > 1 ? 's' : ''}`}
                 <span className="cidades-combo-arrow">{comboAberta ? '▲' : '▼'}</span>
