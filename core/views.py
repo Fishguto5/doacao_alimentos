@@ -18,7 +18,6 @@ from core.models import (
     Doacao,
     DoacaoStatus,
     Notificacao,
-    Person,
     SolicitacaoDoacao,
     Usuario,
 )
@@ -29,7 +28,6 @@ from core.serializers import (
     CategoriaSerializer,
     DoacaoSerializer,
     NotificacaoSerializer,
-    PersonSerializer,
     SolicitacaoDoacaoSerializer,
     UsuarioSerializer,
 )
@@ -60,12 +58,6 @@ def _password_matches(usuario, raw_password):
 
 
 CRUD_EXAMPLES = {
-    "person": {
-        "create": {"name": "Maria", "age": 23, "city": "Campinas"},
-        "update": {"id": 1, "name": "Maria Souza", "age": 24, "city": "Campinas"},
-        "patch": {"id": 1, "city": "Valinhos"},
-        "item": {"id": 1, "name": "Maria Souza", "age": 24, "city": "Campinas"},
-    },
     "usuario": {
         "create": {
             "nome": "Joao Silva",
@@ -461,57 +453,6 @@ def view_auth_login(request):
         {"msg": "Login successful", "data": _usuario_response_data(usuario)},
         status=status.HTTP_200_OK,
     )
-
-
-# Métodos análogos são implementadas para cada modelo.
-@crud_docs(PersonSerializer, "person")
-@api_view(["GET", "POST", "PUT", "PATCH"])
-def view_person(request):
-    # GET method to retrieve all persons
-    if request.method == "GET":
-        person_obj = Person.objects.all()
-        serializer = PersonSerializer(person_obj, many=True)
-        return Response(
-            {"msg": "Successfully retrieved data", "data": serializer.data},
-            status=status.HTTP_200_OK,
-        )
-
-    # POST method to create a new person
-    elif request.method == "POST":
-        serializer = PersonSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Person created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # PUT method to update a person (full update)
-    elif request.method == "PUT":
-        person_obj = Person.objects.get(pk=request.data.get("id"))
-        serializer = PersonSerializer(person_obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Person updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # PATCH method to partially update a person
-    elif request.method == "PATCH":
-        person_obj = Person.objects.get(pk=request.data.get("id"))
-        serializer = PersonSerializer(person_obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"msg": "Person updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"msg": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 # Usuario Views
@@ -978,26 +919,6 @@ def detail_docs(serializer_class, tag):
         return func
 
     return decorator
-
-
-@detail_docs(PersonSerializer, "person")
-@api_view(["GET", "DELETE"])
-def view_person_detail(request, id):
-    try:
-        person_obj = Person.objects.get(pk=id)
-        if request.method == "GET":
-            serializer = PersonSerializer(person_obj)
-            return Response(
-                {"msg": "Successfully retrieved data", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        elif request.method == "DELETE":
-            person_obj.delete()
-            return Response(
-                {"msg": "Person deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-            )
-    except Person.DoesNotExist:
-        return Response({"msg": "Person not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @detail_docs(UsuarioSerializer, "usuario")

@@ -9,7 +9,6 @@ from core.models import (
     Doacao,
     DoacaoStatus,
     Notificacao,
-    Person,
     SolicitacaoDoacao,
     Usuario,
 )
@@ -23,12 +22,6 @@ from core.state_machine import (
 
 # serializer irá transformar os dados de uma "forma" para outra.
 # Por exemplo, de um modelo de banco para um json.
-
-
-class PersonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Person
-        fields = "__all__"
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
