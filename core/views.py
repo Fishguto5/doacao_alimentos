@@ -550,67 +550,78 @@ def view_categoria(request):
 
 
 # Doacao Views
+def _aplicar_filtros_doacao(queryset, query_params):
+    """Aplica os filtros recebidos via query params ao queryset de Doacao.
+
+    Retorna o queryset filtrado ou uma Response de erro (400) caso algum
+    parâmetro seja inválido.
+    """
+    categoria_id = query_params.get("categoria")
+    if categoria_id:
+        queryset = queryset.filter(alimentos__categoria_id=categoria_id).distinct()
+
+    status_filtro = query_params.get("status")
+    if status_filtro:
+        valores_validos = DoacaoStatus.values
+        if status_filtro not in valores_validos:
+            return Response(
+                {
+                    "msg": (
+                        f"Status invalido: '{status_filtro}'. "
+                        f"Valores aceitos: {', '.join(valores_validos)}."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        queryset = queryset.filter(status=status_filtro)
+
+    peso_max = query_params.get("peso_max")
+    if peso_max:
+        queryset = queryset.filter(
+            estimativa_peso__isnull=False,
+            estimativa_peso__lte=peso_max,
+        )
+
+    validade_min = query_params.get("validade_min")
+    if validade_min:
+        try:
+            data_validade_min = datetime.date.fromisoformat(validade_min)
+        except ValueError:
+            return Response(
+                {
+                    "msg": (
+                        f"Data invalida: '{validade_min}'. "
+                        "Use o formato YYYY-MM-DD (ex: 2026-12-31)."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        queryset = queryset.filter(
+            expira_em__isnull=False,
+            expira_em__gte=data_validade_min,
+        )
+
+    cidades_param = query_params.get("cidades")
+    if cidades_param:
+        cidades_lista = [c.strip() for c in cidades_param.split(",") if c.strip()]
+        if cidades_lista:
+            queryset = queryset.filter(cidade__in=cidades_lista)
+
+    busca = query_params.get("busca")
+    if busca:
+        queryset = queryset.filter(titulo__icontains=busca)
+
+    return queryset
+
+
 @crud_docs(DoacaoSerializer, "doacao")
 @api_view(["GET", "POST", "PUT", "PATCH"])
 def view_doacao(request):
     if request.method == "GET":
-        doacao_obj = Doacao.objects.all()
-        categoria_id = request.query_params.get("categoria")
-        if categoria_id:
-            doacao_obj = doacao_obj.filter(alimentos__categoria_id=categoria_id).distinct()
-
-        status_filtro = request.query_params.get("status")
-        if status_filtro:
-            valores_validos = DoacaoStatus.values
-            if status_filtro not in valores_validos:
-                return Response(
-                    {
-                        "msg": (
-                            f"Status invalido: '{status_filtro}'. "
-                            f"Valores aceitos: {', '.join(valores_validos)}."
-                        )
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            doacao_obj = doacao_obj.filter(status=status_filtro)
-
-        peso_max = request.query_params.get("peso_max")
-        if peso_max:
-            doacao_obj = doacao_obj.filter(
-                estimativa_peso__isnull=False,
-                estimativa_peso__lte=peso_max,
-            )
-
-        validade_min = request.query_params.get("validade_min")
-        if validade_min:
-            try:
-                data_validade_min = datetime.date.fromisoformat(validade_min)
-            except ValueError:
-                return Response(
-                    {
-                        "msg": (
-                            f"Data invalida: '{validade_min}'. "
-                            "Use o formato YYYY-MM-DD (ex: 2026-12-31)."
-                        )
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            doacao_obj = doacao_obj.filter(
-                expira_em__isnull=False,
-                expira_em__gte=data_validade_min,
-            )
-
-        cidades_param = request.query_params.get("cidades")
-        if cidades_param:
-            cidades_lista = [c.strip() for c in cidades_param.split(",") if c.strip()]
-            if cidades_lista:
-                doacao_obj = doacao_obj.filter(cidade__in=cidades_lista)
-
-        busca = request.query_params.get("busca")
-        if busca:
-            doacao_obj = doacao_obj.filter(titulo__icontains=busca)
-
-        serializer = DoacaoSerializer(doacao_obj, many=True)
+        queryset = _aplicar_filtros_doacao(Doacao.objects.all(), request.query_params)
+        if isinstance(queryset, Response):
+            return queryset
+        serializer = DoacaoSerializer(queryset, many=True)
         return Response(
             {"msg": "Successfully retrieved data", "data": serializer.data},
             status=status.HTTP_200_OK,
