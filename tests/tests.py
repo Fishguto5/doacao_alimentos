@@ -397,6 +397,191 @@ def test_auth_login_rejeita_senha_incorreta(api_client):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "email,password,expected_status",
+    [
+        pytest.param("", "senha12345", 400, id="email-vazio"),
+        pytest.param("email-invalido", "senha12345", 400, id="email-formato-invalido"),
+        pytest.param("usuario_inexistente@example.com", "senha12345", 401, id="email-inexistente"),
+        pytest.param("loginok@example.com", "senha_errada", 401, id="senha-incorreta"),
+    ],
+)
+def test_auth_login_particoes_equivalencia_rejeita_classes_invalidas(
+    api_client,
+    email,
+    password,
+    expected_status,
+):
+    """Particionamento por classes de equivalência para entradas inválidas de login."""
+    Usuario.objects.create(
+        nome="Usuario Login",
+        email="loginok@example.com",
+        password="senha12345",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua Teste",
+        numero="10",
+        complemento="",
+        foto_perfil_url="",
+    )
+
+    response = api_client.post(
+        "/auth/login/",
+        data={"email": email, "password": password},
+        format="json",
+    )
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_auth_login_valor_limite_email_com_254_caracteres_e_aceito(api_client):
+    """Análise de valor limite para tamanho máximo típico de e-mail (254)."""
+    local = "a" * 64
+    dominio = f"{'b' * 63}.{'c' * 63}.{'d' * 57}"
+    email_limite = f"{local}@{dominio}.com"
+    assert len(email_limite) == 254
+
+    usuario = Usuario.objects.create(
+        nome="Usuario Limite",
+        email=email_limite,
+        password="senha12345",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua Limite",
+        numero="20",
+        complemento="",
+        foto_perfil_url="",
+    )
+
+    response = api_client.post(
+        "/auth/login/",
+        data={"email": usuario.email, "password": "senha12345"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["data"]["id"] == usuario.id
+
+
+@pytest.mark.django_db
+def test_auth_login_valor_limite_password_vazia_retorna_400(api_client):
+    """Análise de valor limite para senha vazia."""
+    seed = uuid.uuid4().hex[:8]
+    payload = _usuario_payload(seed, "SenhaVazia")
+    register_response = api_client.post("/auth/register/", data=payload, format="json")
+    assert register_response.status_code == 201
+
+    login_response = api_client.post(
+        "/auth/login/",
+        data={"email": payload["email"], "password": ""},
+        format="json",
+    )
+
+    assert login_response.status_code == 400
+    assert "password" in login_response.data
+
+
+@pytest.mark.django_db
+def test_auth_login_aceita_email_com_espacos_nas_bordas(api_client):
+    """Valida borda funcional de normalização de e-mail via strip no login."""
+    seed = uuid.uuid4().hex[:8]
+    payload = _usuario_payload(seed, "EmailComEspacos")
+    register_response = api_client.post("/auth/register/", data=payload, format="json")
+    assert register_response.status_code == 201
+
+    login_response = api_client.post(
+        "/auth/login/",
+        data={"email": f"  {payload['email']}  ", "password": payload["password"]},
+        format="json",
+    )
+
+    assert login_response.status_code == 200
+    assert login_response.data["data"]["email"] == payload["email"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "payload_valido,email_existe,senha_correta,expected_status",
+    [
+        pytest.param(True, True, True, 200, id="payload-valido-email-existe-senha-correta"),
+        pytest.param(True, True, False, 401, id="payload-valido-email-existe-senha-incorreta"),
+        pytest.param(True, False, True, 401, id="payload-valido-email-nao-existe"),
+        pytest.param(False, True, True, 400, id="payload-invalido"),
+    ],
+)
+def test_auth_login_tabela_decisao(api_client, payload_valido, email_existe, senha_correta, expected_status):
+    """Grafo de causa-efeito simplificado em formato de tabela de decisão."""
+    email_base = "tabela_login@example.com"
+    senha_cadastrada = "senha12345"
+
+    if email_existe:
+        register_response = api_client.post(
+            "/auth/register/",
+            data={
+                "nome": "Usuario Tabela",
+                "email": email_base,
+                "password": senha_cadastrada,
+                "cep": "13000000",
+                "cidade": "Campinas",
+                "estado": "SP",
+                "bairro": "Centro",
+                "logradouro": "Rua Tabela",
+                "numero": "30",
+                "complemento": "",
+                "foto_perfil_url": "",
+            },
+            format="json",
+        )
+        assert register_response.status_code == 201
+
+    if not payload_valido:
+        payload = {"email": "email-invalido", "password": senha_cadastrada}
+    else:
+        payload = {
+            "email": email_base if email_existe else "nao_existe@example.com",
+            "password": senha_cadastrada if senha_correta else "senha_errada",
+        }
+
+    login_response = api_client.post("/auth/login/", data=payload, format="json")
+
+    assert login_response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_auth_login_usuario_com_senha_legada_e_migrado_para_hash(api_client):
+    """Garante o ramo de compatibilidade para senhas antigas em texto puro."""
+    usuario = Usuario.objects.create(
+        nome="Usuario Legado",
+        email="legado@example.com",
+        password="senha_legada",
+        cep="13000000",
+        cidade="Campinas",
+        estado="SP",
+        bairro="Centro",
+        logradouro="Rua Legada",
+        numero="40",
+        complemento="",
+        foto_perfil_url="",
+    )
+
+    response = api_client.post(
+        "/auth/login/",
+        data={"email": usuario.email, "password": "senha_legada"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    usuario.refresh_from_db()
+    assert usuario.password != "senha_legada"
+    assert check_password("senha_legada", usuario.password)
+
+
+@pytest.mark.django_db
 def test_receptor_pode_avaliar_doacao_concluida(api_client):
     seed = uuid.uuid4().hex[:8]
     doacao, doador, receptor = _create_doacao_para_avaliacao(seed)

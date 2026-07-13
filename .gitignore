@@ -6,6 +6,7 @@ node_modules/
 __pycache__/
 .vscode/
 doacao_alimentos_backend.egg-info/
+.pytest_cache
 
 # Variáveis de ambiente (senhas do banco)
 .env
