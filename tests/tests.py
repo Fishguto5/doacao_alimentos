@@ -466,7 +466,7 @@ def test_auth_login_valor_limite_email_com_254_caracteres_e_aceito(api_client):
 
     assert response.status_code == 200
     assert response.data["data"]["id"] == usuario.id
-    
+
 
 @pytest.mark.django_db
 def test_auth_login_valor_limite_email_com_320_caracteres_rejeitado(api_client):
@@ -533,11 +533,7 @@ def test_auth_login_aceita_email_com_espacos_nas_bordas(api_client):
     ],
 )
 def test_auth_login_tabela_decisao(
-    api_client, 
-    payload_valido, 
-    email_existe, 
-    senha_correta, 
-    expected_status
+    api_client, payload_valido, email_existe, senha_correta, expected_status
 ):
     """Grafo de causa-efeito simplificado em formato de tabela de decisão."""
     email_base = "tabela_login@example.com"
