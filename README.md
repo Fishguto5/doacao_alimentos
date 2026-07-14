@@ -221,3 +221,63 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 ### Padrão de Projeto (State)
 O padrão de projeto State foi adotado no post de doação para representar fase do ciclo de vida de cada doação (disponível, reservada, concluída, expirada, cancelada) como um comportamento distinto. A lógica de transição e as ações permitidas ficam encapsuladas na respectiva classe de estado. Dessa forma evita if/else espalhados no backend, deixando mais claro a função de cada status e facilitando a manutenção de cada fase do ciclo de vida.
 
+### Processo de desenvolvimento:
+
+Para padronizar a contribuicao no projeto, adotamos um fluxo simples com validacoes locais e CI.
+
+1. **Planejamento**
+    - Trabalhe a partir de uma Issue dentro do Github.
+
+2. **Branching**
+    - Crie branch a partir da `main`:
+       - `feat/<nome-curto>` para funcionalidade
+       - `fix/<nome-curto>` para correcao
+       - `chore/<nome-curto>` para ajustes tecnicos/documentacao
+   - Apesar desse padrão não ter sido seguido para nomeação das branches, achamos satisfatório o uso para mensagens dentro dos commits, isso além de gerar uma documentação para cada commit identificando a sua funcionalidade dentro do projeto, ajudou que o sistema do Github Actions identificasse patches e já atualizasse o semantic version adotado dentro do projeto.
+
+3. **Desenvolvimento local**
+    - Backend:
+       - `pip install -e ".[dev]"`
+       - `python manage.py migrate`
+       - `python manage.py runserver`
+    - Frontend:
+       - `cd frontend && npm install && npm run dev`
+
+4. **Qualidade antes do push**
+    - Backend:
+       - `ruff check .`
+       - `black --check .`
+       - `python manage.py makemigrations --check --dry-run`
+       - `pytest -v`
+    - Frontend:
+       - `cd frontend && npm run lint`
+       - `cd frontend && npm run test:run -- --reporter=verbose`
+       - `cd frontend && npm run build`
+
+5. **Commits e versionamento**
+    - Seguimos Conventional Commits para semantic-release:
+       - `fix: ...` -> patch
+       - `feat: ...` -> minor
+       - `feat!: ...` -> major
+       - `chore: ...` -> sem alteracao de versao
+
+6. **Pull Request e merge**
+    - Abra PR para `main` com:
+       - contexto do problema
+       - mudancas realizadas
+       - passos de validacao
+       - riscos/impactos
+    - Realize merge apenas com CI aprovado e review concluido.
+
+7. **Pos-merge**
+    - O release e gerado automaticamente no push da `main` via semantic-release.
+
+Ao longo do projeto, observamos que o processo de desenvolvimento adotado pelo grupo se tornou mais robusto dentro do escopo proposto. Conseguimos cumprir as entregas com ciclos iterativos de correção e evolução, ampliando a cobertura de testes e aprimorando o pipeline de CI/CD com GitHub Actions, entre outras melhorias relevantes.
+
+Também identificamos pontos de correção por meio da análise de code smells, o que nos permitiu consultar catálogos de refatoração e alinhar a solução a padrões de engenharia de software. Esses padrões foram incorporados à arquitetura do sistema, em linha com práticas comuns na indústria para aplicações semelhantes.
+
+No fluxo de desenvolvimento, a introdução de testes automatizados gerou ganhos claros de qualidade. Diversos commits inicialmente apresentaram falhas de validação, e isso nos ajudou a corrigir problemas mais cedo e propor melhorias contínuas. Com isso, entendemos que construir um sistema robusto também significa criar um ambiente preparado para lidar com falhas conhecidas.
+
+Em comparação com o início do semestre, os commits passaram a ser mais consistentes e com propósito mais claro. A adoção de GitHub Issues foi essencial para organizar o processo de resolução de problemas e tornar o trabalho mais transparente. Além disso, a divisão de atividades entre os integrantes ficou mais bem definida, apoiada pelo modelo de projeto escolhido pelo grupo.
+
+Assim, concluímos que as boas práticas de engenharia de software se mostraram efetivas para elevar a qualidade técnica e fortalecer a colaboração da equipe, evidenciando uma evolução concreta no desenvolvimento do projeto.
