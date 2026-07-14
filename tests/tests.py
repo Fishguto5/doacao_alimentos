@@ -531,7 +531,13 @@ def test_auth_login_aceita_email_com_espacos_nas_bordas(api_client):
         pytest.param(False, True, True, 400, id="payload-invalido"),
     ],
 )
-def test_auth_login_tabela_decisao(api_client, payload_valido, email_existe, senha_correta, expected_status):
+def test_auth_login_tabela_decisao(
+    api_client, 
+    payload_valido, 
+    email_existe, 
+    senha_correta, 
+    expected_status
+):
     """Grafo de causa-efeito simplificado em formato de tabela de decisão."""
     email_base = "tabela_login@example.com"
     senha_cadastrada = "senha12345"
