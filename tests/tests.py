@@ -467,6 +467,23 @@ def test_auth_login_valor_limite_email_com_254_caracteres_e_aceito(api_client):
     assert response.status_code == 200
     assert response.data["data"]["id"] == usuario.id
 
+@pytest.mark.django_db
+def test_auth_login_valor_limite_email_com_320_caracteres_rejeitado(api_client):
+    """Análise de valor limite para tamanho excedente de e-mail (>320 caracteres)."""
+    local = "a" * 64
+    dominio = f"{'b' * 63}.{'c' * 63}.{'d' * 63}.{'e' * 63}"
+    email_excedente = f"{local}@{dominio}.com"
+    assert len(email_excedente) == 324
+
+    response = api_client.post(
+        "/auth/login/",
+        data={"email": email_excedente, "password": "senha12345"},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "email" in response.data
+
 
 @pytest.mark.django_db
 def test_auth_login_valor_limite_password_vazia_retorna_400(api_client):
