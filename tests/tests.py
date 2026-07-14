@@ -466,6 +466,7 @@ def test_auth_login_valor_limite_email_com_254_caracteres_e_aceito(api_client):
 
     assert response.status_code == 200
     assert response.data["data"]["id"] == usuario.id
+    
 
 @pytest.mark.django_db
 def test_auth_login_valor_limite_email_com_320_caracteres_rejeitado(api_client):
