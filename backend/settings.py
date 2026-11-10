@@ -10,18 +10,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Carrega arquivo .env local se existir
 load_dotenv(BASE_DIR / ".env")
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-a_zozt=bexp5v-sfsq!^vj41m8zk^2$w4b8$r$mmf0gfy3eftc")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-# Permite hosts do Railway e locais
+# Permitir hosts do Railway e locais
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'doacaoalimentos-production.up.railway.app,localhost,127.0.0.1,.railway.app').split(',')
 
 
 # Application definition
 INSTALLED_APPS = [
+    "corsheaders",  # Suporte a CORS
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,8 +42,9 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # OBRIGATÓRIO: deve ser o PRIMEIRO middleware
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve arquivos estáticos em produção
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -53,6 +53,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+# Configuração de CORS para permitir que o Frontend no Railway faça requisições HTTP
+CORS_ALLOWED_ORIGINS = [
+    "https://aware-mercy-production-854c33cc.up.railway.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+CORS_ALLOW_ALL_ORIGINS = True  # Libera todas as origens para testes de deploy
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Site de Doação API",
@@ -89,27 +97,19 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 
-# Database Configuration (Ordem de prioridade: DATABASE_URL -> POSTGRES manual -> SQLite local)
-if os.getenv('DATABASE_URL'):
+# Configuração ÚNICA do Banco de Dados
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
+            default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
         )
     }
-elif os.getenv("USE_POSTGRES", "false").lower() == "true":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("POSTGRES_DB", "doacao_alimentos"),
-            "USER": os.getenv("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "1234"),
-            "HOST": os.getenv("POSTGRES_HOST", "127.0.0.1"),
-            "PORT": os.getenv("POSTGRES_PORT", "5433"),
-        }
-    }
 else:
+    # Se não estiver no Railway, usa SQLite local
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -137,8 +137,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# WhiteNoise para compactação e cache de arquivos estáticos
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files
