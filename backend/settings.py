@@ -2,25 +2,22 @@
 
 import os
 from pathlib import Path
-
 from dotenv import load_dotenv
+import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Carrega arquivo .env local se existir
 load_dotenv(BASE_DIR / ".env")
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-a_zozt=bexp5v-sfsq!^vj41m8zk^2$w4b8$r$mmf0gfy3eftc"
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-a_zozt=bexp5v-sfsq!^vj41m8zk^2$w4b8$r$mmf0gfy3eftc")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = []
+# Permite hosts do Railway e locais
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'doacaoalimentos-production.up.railway.app,localhost,127.0.0.1,.railway.app').split(',')
 
 
 # Application definition
@@ -39,7 +36,6 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    # não estamos exigindo autenticação ou tokens, dado que não temos autenticação implementada
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
@@ -48,6 +44,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve arquivos estáticos em produção
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -57,7 +54,6 @@ MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
-# Configure Spectacular settings
 SPECTACULAR_SETTINGS = {
     "TITLE": "Site de Doação API",
     "DESCRIPTION": (
@@ -66,7 +62,6 @@ SPECTACULAR_SETTINGS = {
     ),
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    # Hide auth methods in docs while the API has no auth configured.
     "AUTHENTICATION_WHITELIST": [],
 }
 
@@ -94,12 +89,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-USE_POSTGRES = os.getenv("USE_POSTGRES", "false").lower() == "true"
-
-if USE_POSTGRES:
+# Database Configuration (Ordem de prioridade: DATABASE_URL -> POSTGRES manual -> SQLite local)
+if os.getenv('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+elif os.getenv("USE_POSTGRES", "false").lower() == "true":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -120,43 +119,28 @@ else:
 
 
 # Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Media files (User uploads)
-# https://docs.djangoproject.com/en/6.0/ref/settings/#media-url
+# WhiteNoise para compactação e cache de arquivos estáticos
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
