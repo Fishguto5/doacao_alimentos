@@ -1,3 +1,6 @@
+// Obtém a URL do Backend da variável de ambiente com fallback para a URL de produção do Railway
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://doacaoalimentos-production.up.railway.app').replace(/\/$/, '')
+
 const request = async (method, path, body, params) => {
   const opts = { method, headers: {} }
   if (body !== undefined) {
@@ -13,7 +16,11 @@ const request = async (method, path, body, params) => {
         Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
       ).toString()
     : ''
-  const url = searchParams ? `${path}?${searchParams}` : path
+  
+  // Concatena a URL base do backend ao caminho (path) da requisição
+  const fullPath = path.startsWith('/') ? path : `/${path}`
+  const url = searchParams ? `${API_BASE_URL}${fullPath}?${searchParams}` : `${API_BASE_URL}${fullPath}`
+
   const res = await fetch(url, opts)
   if (res.status === 204) return null
   const json = await res.json()
