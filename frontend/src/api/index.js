@@ -1,5 +1,11 @@
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://doacaoalimentos-production.up.railway.app').replace(/\/$/, '')
 
+export const mediaUrl = (value) => {
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value)) return value
+  return `${API_BASE_URL}/${value.replace(/^\/+/, '')}`
+}
+
 const request = async (method, path, body, params) => {
   const opts = { method, headers: {} }
   if (body !== undefined) {

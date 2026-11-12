@@ -89,7 +89,7 @@ class Doacao(models.Model):
     )
     titulo = models.CharField(max_length=100)
     descricao = models.TextField()
-    imagem = models.ImageField(upload_to="doacoes/%Y/%m/%d/", blank=True, null=True)
+    imagem = models.URLField(max_length=500, blank=True)
     status = models.CharField(
         max_length=20,
         choices=DoacaoStatus.choices,

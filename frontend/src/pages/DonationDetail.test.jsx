@@ -68,7 +68,10 @@ describe('DonationDetail', () => {
 
     const image = await screen.findByRole('img', { name: /Doação de Teste/i })
     expect(image).toBeInTheDocument()
-    expect(image).toHaveAttribute('src', '/media/doacoes/test.jpg')
+    expect(image).toHaveAttribute(
+      'src',
+      'https://doacaoalimentos-production.up.railway.app/media/doacoes/test.jpg',
+    )
     expect(api.getAvaliacoes).toHaveBeenCalledWith({ doacao: 1 })
   })
 

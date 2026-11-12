@@ -1,4 +1,5 @@
 import { navigate } from '../router'
+import { mediaUrl } from '../api'
 
 const STATUS_LABELS = {
   disponivel: 'Disponível',
@@ -22,6 +23,15 @@ export default function DonationCard({ doacao }) {
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && navigate(`#/donation/${doacao.id}`)}
     >
+      {doacao.imagem && (
+        <div className="card-image">
+          <img
+            src={mediaUrl(doacao.imagem)}
+            alt={`Imagem da doação: ${doacao.titulo}`}
+            onError={e => { e.currentTarget.parentElement.style.display = 'none' }}
+          />
+        </div>
+      )}
       <div className="card-body">
         <div className="card-header-row">
           <span className={statusClass}>{STATUS_LABELS[status] || status}</span>

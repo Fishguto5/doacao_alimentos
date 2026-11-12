@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { api } from '../api'
+import { api, mediaUrl } from '../api'
 import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
 
@@ -176,7 +176,7 @@ export default function DonationDetail({ id }) {
                 onClick={openImageModal}
               >
                 <img
-                  src={doacao.imagem}
+                  src={mediaUrl(doacao.imagem)}
                   alt={`Imagem ilustrativa da doação: ${doacao.titulo}`}
                   onError={e => { e.target.style.display = 'none' }}
                 />
@@ -249,7 +249,7 @@ export default function DonationDetail({ id }) {
                   ×
                 </button>
                 <img
-                  src={doacao.imagem}
+                  src={mediaUrl(doacao.imagem)}
                   alt={`Imagem em tela cheia da doação: ${doacao.titulo}`}
                 />
               </div>

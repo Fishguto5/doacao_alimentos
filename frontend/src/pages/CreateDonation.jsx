@@ -80,13 +80,10 @@ export default function CreateDonation() {
   const [error, setError] = useState('')
   const [showEstadoOptions, setShowEstadoOptions] = useState(false)
   const estadoSelectRef = useRef(null)
-  const [imagem, setImagem] = useState(null)
-  const [imagemPreview, setImagemPreview] = useState(null)
-
   const [form, setForm] = useState({
     titulo: '', descricao: '',
     cep: '', cidade: user?.cidade || '', estado: user?.estado || '',
-    bairro: '', logradouro: '', numero: '', complemento: '',
+    bairro: '', logradouro: '', numero: '', complemento: '', imagem: '',
   })
 
   const [alimentos, setAlimentos] = useState([
@@ -122,23 +119,6 @@ export default function CreateDonation() {
 
   function updateForm(field, value) {
     setForm(f => ({ ...f, [field]: value }))
-  }
-
-  function handleImagemChange(e) {
-    const file = e.target.files?.[0]
-    if (file) {
-      setImagem(file)
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setImagemPreview(event.target?.result)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  function removeImagem() {
-    setImagem(null)
-    setImagemPreview(null)
   }
 
   function updateAlimento(i, field, value) {
@@ -178,11 +158,6 @@ export default function CreateDonation() {
     if (!form.logradouro.trim()) return setError('O logradouro é obrigatório.')
     if (!form.numero.trim()) return setError('O número é obrigatório.')
 
-    // Validação do tamanho da imagem (máximo 5MB)
-    if (imagem && imagem.size > 5 * 1024 * 1024) {
-      return setError('A imagem excede o tamanho máximo de 5MB.')
-    }
-
     // Validação dos alimentos
     const validAlimentos = alimentos.filter(a => a.nome.trim() && a.categoria && a.quantidade && Number(a.quantidade) > 0)
     if (validAlimentos.length === 0) {
@@ -201,20 +176,19 @@ export default function CreateDonation() {
 
     setLoading(true)
     try {
-      const payload = new FormData()
-      payload.append('doador', user.id)
-      payload.append('status', 'disponivel')
-      payload.append('titulo', form.titulo)
-      payload.append('descricao', form.descricao)
-      payload.append('cep', form.cep)
-      payload.append('cidade', form.cidade)
-      payload.append('estado', form.estado)
-      payload.append('bairro', form.bairro)
-      payload.append('logradouro', form.logradouro)
-      payload.append('numero', form.numero)
-      payload.append('complemento', form.complemento)
-      if (imagem) {
-        payload.append('imagem', imagem)
+      const payload = {
+        doador: user.id,
+        status: 'disponivel',
+        titulo: form.titulo,
+        descricao: form.descricao,
+        cep: form.cep,
+        cidade: form.cidade,
+        estado: form.estado,
+        bairro: form.bairro,
+        logradouro: form.logradouro,
+        numero: form.numero,
+        complemento: form.complemento,
+        imagem: form.imagem.trim(),
       }
 
       const doacao = await api.createDoacao(payload)
@@ -274,22 +248,15 @@ export default function CreateDonation() {
           </div>
 
           <div className="form-group">
-            <label>Imagem da doação</label>
-            {imagemPreview ? (
-              <div className="imagem-preview">
-                <img src={imagemPreview} alt="Preview da imagem" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }} />
-                <button type="button" className="btn-remove" onClick={removeImagem} style={{ marginTop: '8px' }}>Remover imagem</button>
-              </div>
-            ) : (
-              <input
-                className="input"
-                type="file"
-                accept="image/*"
-                onChange={handleImagemChange}
-                placeholder="Selecione uma imagem"
-              />
-            )}
-            <small>Máximo 5MB. Formatos aceitos: JPG, PNG, GIF, WebP</small>
+            <label>URL da imagem (opcional)</label>
+            <input
+              className="input"
+              type="url"
+              value={form.imagem}
+              onChange={e => updateForm('imagem', e.target.value)}
+              placeholder="https://exemplo.com/imagem.jpg"
+            />
+            <small>Informe uma URL pública direta para a imagem.</small>
           </div>
 
           <div className="form-row">
