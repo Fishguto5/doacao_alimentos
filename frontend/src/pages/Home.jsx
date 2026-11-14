@@ -8,6 +8,7 @@ export default function Home() {
   const { user } = useUser()
   const [doacoes, setDoacoes] = useState([])
   const [categorias, setCategorias] = useState([])
+  const [alimentos, setAlimentos] = useState([])
   const [cidades, setCidades] = useState([])
   const [cidadesSelecionadas, setCidadesSelecionadas] = useState(new Set())
   const [comboAberta, setComboAberta] = useState(false)
@@ -36,6 +37,11 @@ export default function Home() {
     api.getCidades()
       .then(data => setCidades(data))
       .catch(() => setCidades([]))
+  }, [])
+
+  useEffect(() => {
+    if (typeof api.getAlimentos !== 'function') return
+    api.getAlimentos().then(setAlimentos).catch(() => setAlimentos([]))
   }, [])
 
   const cidadesFiltroParam = cidadesSelecionadas.size > 0
@@ -110,20 +116,22 @@ export default function Home() {
   return (
     <main className="page">
       <section className="hero-banner">
+        <img className="hero-leaf" src="/figma/hero-leaf.svg" alt="" />
         <div className="hero-content">
+          <span className="hero-eyebrow">UMA REDE QUE ALIMENTA ESPERANÇA</span>
           <h1>Compartilhe alimentos,<br />transforme vidas</h1>
           <p>Conectando quem tem com quem precisa. Anuncie ou solicite doações de alimentos na sua região.</p>
           {!user && (
             <div className="hero-cta">
-              <button className="btn-primary btn-lg" onClick={() => navigate('#/register')}>
-                Começar agora
+              <button className="btn-primary btn-lg hero-action" onClick={() => navigate('#/register')}>
+                <span className="hero-action-icon">+</span> Começar agora
               </button>
             </div>
           )}
           {user && (
             <div className="hero-cta">
-              <button className="btn-primary btn-lg" onClick={() => navigate('#/create')}>
-                + Anunciar doação
+              <button className="btn-primary btn-lg hero-action" onClick={() => navigate('#/create')}>
+                <span className="hero-action-icon">+</span> Anunciar doação
               </button>
             </div>
           )}
@@ -131,7 +139,8 @@ export default function Home() {
       </section>
 
       <section className="filters-section">
-        <div className="filters-row">
+        <div className="filters-panel">
+          <div className="filters-row">
           <input
             className="input search-input"
             type="text"
@@ -222,10 +231,17 @@ export default function Home() {
               )}
             </div>
           )}
+          </div>
         </div>
-
-        <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
       </section>
+
+      <div className="results-heading">
+        <div>
+          <span className="section-eyebrow">PERTO DE VOCÊ</span>
+          <p className="results-count">{filtradas.length} doaç{filtradas.length !== 1 ? 'ões' : 'ão'} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
+        </div>
+        <span className="sort-hint">Ordenadas pelas mais recentes</span>
+      </div>
 
       {loading && <div className="loading">Carregando doações...</div>}
       {error && <div className="error-msg">Erro ao carregar: {error}</div>}
@@ -242,7 +258,14 @@ export default function Home() {
           </div>
         ) : (
           <div className="donations-grid">
-            {filtradas.map(d => <DonationCard key={d.id} doacao={d} />)}
+            {filtradas.map(d => (
+              <DonationCard
+                key={d.id}
+                doacao={d}
+                alimentos={alimentos.filter(alimento => alimento.doacao === d.id)}
+                categorias={categorias}
+              />
+            ))}
           </div>
         )
       )}

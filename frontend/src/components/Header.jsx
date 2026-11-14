@@ -1,41 +1,77 @@
 import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '../api'
 
 export default function Header() {
   const { user, logout } = useUser()
   const [notifCount, setNotifCount] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(Boolean(user))
+  const [notifications, setNotifications] = useState([])
+  const notificationRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
     api.getNotificacoes()
       .then(list => {
-        const unread = list.filter(n => n.usuario === user.id && n.status === 'pendente')
-        setNotifCount(unread.length)
+        const own = list
+          .filter(n => n.usuario === user.id)
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        setNotifications(own)
+        setNotifCount(own.filter(n => n.status === 'pendente').length)
       })
       .catch(() => {})
   }, [user])
 
+  useEffect(() => {
+    function closeOnOutsideClick(event) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', closeOnOutsideClick)
+    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
+  }, [])
+
+  async function markAllNotificationsRead() {
+    const unread = notifications.filter(n => n.status === 'pendente')
+    const results = await Promise.allSettled(
+      unread.map(n => api.updateNotificacao({ id: n.id, status: 'lida' })),
+    )
+    const readIds = new Set(unread.filter((_, index) => results[index].status === 'fulfilled').map(n => n.id))
+    setNotifications(current => current.map(n => readIds.has(n.id) ? { ...n, status: 'lida' } : n))
+    setNotifCount(count => Math.max(0, count - readIds.size))
+  }
+
+  function notificationTime(value) {
+    if (!value) return ''
+    const hours = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 3600000))
+    if (hours < 1) return 'agora'
+    if (hours < 24) return `há ${hours} h`
+    const days = Math.floor(hours / 24)
+    return days === 1 ? 'ontem' : `há ${days} dias`
+  }
+
   function go(path) {
     navigate(path)
     setMenuOpen(false)
+    setNotificationsOpen(false)
   }
 
   return (
     <header className="header">
       <div className="header-inner">
         <button className="logo" onClick={() => go('#/')}>
-          <span className="logo-icon">🌱</span>
+          <img className="logo-icon" src="/figma/brand-leaf.svg" alt="" />
           <span className="logo-text">DoacaoAlimentos</span>
         </button>
 
         <nav className="nav-links">
           <button className="nav-link" onClick={() => go('#/')}>Doações</button>
           {user && (
-            <button className="nav-link" onClick={() => go('#/create')}>
-              + Nova Doação
+            <button className="nav-link new-donation-link" onClick={() => go('#/create')}>
+              <span className="nav-donation-plus" aria-hidden="true">+</span> Nova Doação
             </button>
           )}
         </nav>
@@ -43,11 +79,61 @@ export default function Header() {
         <div className="header-actions">
           {user ? (
             <div className="user-menu">
-              {notifCount > 0 && (
-                <button className="notif-btn" onClick={() => go('#/profile?tab=notificacoes')} title="Notificações">
-                  🔔 <span className="badge">{notifCount}</span>
+              <div className="notification-menu" ref={notificationRef}>
+                <button
+                  className="notif-btn"
+                  onClick={() => { setNotificationsOpen(open => !open); setMenuOpen(false) }}
+                  title="Notificações"
+                  aria-label={`Notificações${notifCount ? `, ${notifCount} não lidas` : ''}`}
+                  aria-expanded={notificationsOpen}
+                >
+                  <img className="bell-icon" src="/figma/bell.svg" alt="" />
+                  {notifCount > 0 && <span className="notif-count">{notifCount > 9 ? '9+' : notifCount}</span>}
                 </button>
-              )}
+                {notificationsOpen && (
+                  <section className="notification-popover" aria-label="Últimas notificações">
+                    <header className="notification-popover-header">
+                      <div>
+                        <h2>Notificações</h2>
+                        <p>{notifCount ? `Você tem ${notifCount} novas atualizações` : 'Você está em dia'}</p>
+                      </div>
+                      {notifCount > 0 && (
+                        <button className="mark-notifications-read" onClick={markAllNotificationsRead}>
+                          Marcar como lidas
+                        </button>
+                      )}
+                    </header>
+                    <div className="notification-popover-list">
+                      {notifications.length ? notifications.slice(0, 3).map(notification => (
+                        <button
+                          className={`notification-popover-item${notification.status === 'pendente' ? ' unread' : ''}`}
+                          key={notification.id}
+                          onClick={() => go('#/profile?tab=notificacoes')}
+                        >
+                          <span className="notification-type-icon" aria-hidden="true">
+                            <img
+                              src={notification.mensagem?.toLowerCase().includes('aceita')
+                                ? '/figma/check.svg'
+                                : '/figma/message.svg'}
+                              alt=""
+                            />
+                          </span>
+                          <span className="notification-copy">
+                            <span>{notification.mensagem}</span>
+                            <small>{notificationTime(notification.created_at)}</small>
+                          </span>
+                          {notification.status === 'pendente' && <i className="notification-unread-dot" />}
+                        </button>
+                      )) : (
+                        <p className="notification-empty">Nenhuma notificação por enquanto.</p>
+                      )}
+                    </div>
+                    <button className="all-notifications-link" onClick={() => go('#/profile?tab=notificacoes')}>
+                      Ver todas as notificações
+                    </button>
+                  </section>
+                )}
+              </div>
               <button className="user-btn" onClick={() => setMenuOpen(o => !o)}>
                 <span className="user-avatar">{user.nome.charAt(0).toUpperCase()}</span>
                 <span className="user-name">{user.nome.split(' ')[0]}</span>

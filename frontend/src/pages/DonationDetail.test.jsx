@@ -6,6 +6,7 @@ import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
 
 vi.mock('../api', () => ({
+  mediaUrl: (value) => `https://doacaoalimentos-production.up.railway.app${value}`,
   api: {
     getDoacao: vi.fn(),
     getAlimentos: vi.fn(),

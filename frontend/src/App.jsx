@@ -34,7 +34,12 @@ export default function App() {
         <Header />
         <Router />
         <footer className="footer">
-          <p>DoacaoAlimentos — Compartilhe alimentos, transforme vidas. 🌱</p>
+          <div className="footer-inner">
+            <a className="footer-brand" href="#/" aria-label="DoacaoAlimentos, página inicial">
+              <img src="/figma/brand-leaf-alt.svg" alt="" /> DoacaoAlimentos
+            </a>
+            <p>Compartilhe alimentos, transforme vidas.</p>
+          </div>
         </footer>
       </div>
     </UserProvider>
