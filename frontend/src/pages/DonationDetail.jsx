@@ -59,14 +59,12 @@ export default function DonationDetail({ id }) {
   const canRate = user && doacao?.status === 'concluida' && !myRating && isReceptor && doacao?.doador
 
   async function handleRequest(e) {
-    e.preventDefault()
+    e?.preventDefault?.()
     setSubmitting(true)
     setFeedback('')
     try {
       await api.createSolicitacao({ doacao: doacao.id, solicitante: user.id, status: 'pendente', mensagem: requestMsg })
-      setFeedback('Solicitação enviada com sucesso!')
-      setRequestMsg('')
-      loadData()
+      navigate(`#/reservation-success/${doacao.id}`)
     } catch (err) {
       setFeedback('Erro: ' + err.message)
     } finally {
@@ -161,7 +159,13 @@ export default function DonationDetail({ id }) {
   const date = new Date(doacao.data_publicacao).toLocaleDateString('pt-BR')
 
   return (
-    <main className="page">
+    <main className="page donation-detail-page">
+      <div className="mobile-detail-header">
+        <button type="button" onClick={() => navigate('#/')} aria-label="Voltar">
+          <img src="/figma/mobile-back.png" alt="" />
+        </button>
+        <span>{doacao.titulo}</span>
+      </div>
       <button className="back-btn" onClick={() => navigate('#/')}>← Voltar</button>
 
       {feedback && <div className={feedback.startsWith('Erro') ? 'error-msg' : 'success-msg'}>{feedback}</div>}
@@ -178,7 +182,7 @@ export default function DonationDetail({ id }) {
                 <img
                   src={mediaUrl(doacao.imagem)}
                   alt={`Imagem ilustrativa da doação: ${doacao.titulo}`}
-                  onError={e => { e.target.style.display = 'none' }}
+                  onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.classList.add('image-missing') }}
                 />
                 <div className="detail-image-overlay">Clique para ampliar</div>
               </button>
@@ -188,6 +192,19 @@ export default function DonationDetail({ id }) {
               </div>
             )}
           </div>
+
+          <section className="mobile-donation-summary">
+            <div className="mobile-donor-row">
+              <img className="mobile-donor-avatar" src="/figma/mobile-profile.png" alt="" />
+              <strong>{doador?.nome || 'Doador'}{avaliacoes.length ? `, ${ (avaliacoes.reduce((sum, avaliacao) => sum + Number(avaliacao.nota), 0) / avaliacoes.length).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}` : ''}</strong>
+              {avaliacoes.length > 0 && <img className="mobile-detail-star" src="/figma/mobile-star-rating.png" alt="avaliação" />}
+            </div>
+            <h1>{doacao.titulo}</h1>
+            {alimentos[0] && <p><strong>Quantidade:</strong> {alimentos.reduce((total, alimento) => total + Number(alimento.quantidade || 0), 0)} {UNIDADE_LABELS[alimentos[0].unidade] || alimentos[0].unidade}</p>}
+            {alimentos[0]?.data_validade && <p><strong>Validade:</strong> {new Date(`${alimentos[0].data_validade}T12:00:00`).toLocaleDateString('pt-BR')}</p>}
+            {(doacao.bairro || doacao.cidade) && <p><strong>Local:</strong> {[doacao.bairro, doacao.cidade, doacao.estado].filter(Boolean).join(', ')}</p>}
+            {doacao.descricao && <p className="mobile-observations"><strong>Observações:</strong> {doacao.descricao}</p>}
+          </section>
 
           <div className="detail-header">
               <div className="detail-header-row">
@@ -298,7 +315,7 @@ export default function DonationDetail({ id }) {
 
           {/* Request for non-donor */}
           {canRequest && (
-            <div className="sidebar-card">
+            <div className="sidebar-card request-reserve-card">
               <h3>Solicitar esta doação</h3>
               <form onSubmit={handleRequest}>
                 <div className="form-group">
@@ -373,6 +390,16 @@ export default function DonationDetail({ id }) {
           )}
         </aside>
       </div>
+      {doacao.status === 'disponivel' && !isDonor && (!user || !mySolicitation) && (
+        <button
+          type="button"
+          className="mobile-reserve-cta"
+          onClick={user ? handleRequest : () => navigate('#/register')}
+          disabled={submitting}
+        >
+          {submitting ? 'Enviando...' : 'Reservar'}
+        </button>
+      )}
     </main>
   )
 }

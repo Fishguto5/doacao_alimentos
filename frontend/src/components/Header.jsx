@@ -2,9 +2,13 @@ import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../api'
+import { useRouter } from '../router'
 
 export default function Header() {
   const { user, logout } = useUser()
+  const hash = useRouter()
+  const pathname = hash.replace('#', '').split('?')[0]
+  const isMobileDetailRoute = pathname.startsWith('/donation/') || pathname.startsWith('/reservation-success/')
   const [notifCount, setNotifCount] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(Boolean(user))
@@ -60,7 +64,18 @@ export default function Header() {
   }
 
   return (
-    <header className="header">
+    <header className={`header${isMobileDetailRoute ? ' header-detail-route' : ''}`}>
+      {!isMobileDetailRoute && (
+        <div className="mobile-home-toolbar">
+          <button type="button" className="mobile-menu-button" aria-label="Abrir filtros" onClick={() => window.dispatchEvent(new Event('toggle-donation-filters'))}>
+            <span /><span /><span />
+          </button>
+          <label className="mobile-search-field">
+            <input type="search" placeholder="Buscar doações..." aria-label="Buscar doações" onChange={event => window.dispatchEvent(new CustomEvent('donation-search', { detail: event.target.value }))} />
+            <img src="/figma/mobile-search.png" alt="" />
+          </label>
+        </div>
+      )}
       <div className="header-inner">
         <button className="logo" onClick={() => go('#/')}>
           <img className="logo-icon" src="/figma/brand-leaf.svg" alt="" />

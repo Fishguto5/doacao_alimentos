@@ -9,6 +9,8 @@ export default function Home() {
   const [doacoes, setDoacoes] = useState([])
   const [categorias, setCategorias] = useState([])
   const [alimentos, setAlimentos] = useState([])
+  const [avaliacoes, setAvaliacoes] = useState([])
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [cidades, setCidades] = useState([])
   const [cidadesSelecionadas, setCidadesSelecionadas] = useState(new Set())
   const [comboAberta, setComboAberta] = useState(false)
@@ -42,6 +44,18 @@ export default function Home() {
   useEffect(() => {
     if (typeof api.getAlimentos !== 'function') return
     api.getAlimentos().then(setAlimentos).catch(() => setAlimentos([]))
+  }, [])
+
+  useEffect(() => {
+    api.getAvaliacoes().then(setAvaliacoes).catch(() => setAvaliacoes([]))
+    const onSearch = event => setSearch(event.detail)
+    const onToggleFilters = () => setMobileFiltersOpen(open => !open)
+    window.addEventListener('donation-search', onSearch)
+    window.addEventListener('toggle-donation-filters', onToggleFilters)
+    return () => {
+      window.removeEventListener('donation-search', onSearch)
+      window.removeEventListener('toggle-donation-filters', onToggleFilters)
+    }
   }, [])
 
   const cidadesFiltroParam = cidadesSelecionadas.size > 0
@@ -138,7 +152,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="filters-section">
+      <div className="mobile-list-heading">
+        <h1>Doações</h1>
+        <button type="button" onClick={() => setMobileFiltersOpen(open => !open)} aria-label="Abrir filtros">
+          <img src="/figma/mobile-filter.png" alt="" />
+        </button>
+      </div>
+
+      <section className={`filters-section${mobileFiltersOpen ? ' mobile-filters-open' : ''}`}>
         <div className="filters-panel">
           <div className="filters-row">
           <input
@@ -264,6 +285,10 @@ export default function Home() {
                 doacao={d}
                 alimentos={alimentos.filter(alimento => alimento.doacao === d.id)}
                 categorias={categorias}
+                rating={(() => {
+                  const donorRatings = avaliacoes.filter(avaliacao => avaliacao.avaliado === d.doador)
+                  return donorRatings.length ? donorRatings.reduce((sum, avaliacao) => sum + Number(avaliacao.nota), 0) / donorRatings.length : null
+                })()}
               />
             ))}
           </div>

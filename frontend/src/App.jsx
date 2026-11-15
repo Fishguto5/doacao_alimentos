@@ -7,6 +7,8 @@ import CreateDonation from './pages/CreateDonation'
 import UserProfile from './pages/UserProfile'
 import PublicUserProfile from './pages/PublicUserProfile'
 import Register from './pages/Register'
+import ReservationSuccess from './pages/ReservationSuccess'
+import MobileNav from './components/MobileNav'
 
 function Router() {
   const hash = useRouter()
@@ -15,6 +17,10 @@ function Router() {
 
   if (path === '/register') return <Register />
   if (path === '/create') return <CreateDonation />
+  if (path.startsWith('/reservation-success/')) {
+    const id = path.replace('/reservation-success/', '')
+    return <ReservationSuccess id={id} />
+  }
   if (path === '/profile') return <UserProfile />
   if (path.startsWith('/users/')) {
     const id = path.replace('/users/', '')
@@ -41,6 +47,7 @@ export default function App() {
             <p>Compartilhe alimentos, transforme vidas.</p>
           </div>
         </footer>
+        <MobileNav />
       </div>
     </UserProvider>
   )

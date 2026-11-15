@@ -9,7 +9,7 @@ const STATUS_LABELS = {
   cancelada: 'Cancelada',
 }
 
-export default function DonationCard({ doacao, alimentos = [], categorias = [] }) {
+export default function DonationCard({ doacao, alimentos = [], categorias = [], rating }) {
   const VALID_STATUSES = ['disponivel', 'reservada', 'concluida', 'expirada', 'cancelada']
   const status = VALID_STATUSES.includes(doacao.status) ? doacao.status : 'disponivel'
   const statusClass = `badge badge-${status}`
@@ -50,8 +50,9 @@ export default function DonationCard({ doacao, alimentos = [], categorias = [] }
         )}
         <div className="card-meta">
           {doacao.cidade && (
-            <span className="meta-item"><img src="/figma/pin.svg" alt="" /> {doacao.cidade}{doacao.estado ? `, ${doacao.estado}` : ''}</span>
+            <span className="meta-item"><img className="desktop-pin-icon" src="/figma/pin.svg" alt="" /><img className="mobile-location-icon" src="/figma/mobile-location.png" alt="" /> {doacao.cidade}{doacao.estado ? `, ${doacao.estado}` : ''}</span>
           )}
+          {rating && <span className="meta-item mobile-rating"><img src="/figma/mobile-person.png" alt="" /> {rating.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <img className="mobile-star-icon" src="/figma/mobile-star.png" alt="" /></span>}
           {doacao.estimativa_peso && (
             <span className="meta-item"><img src="/figma/scale.svg" alt="" /> {Number(doacao.estimativa_peso).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} kg</span>
           )}
