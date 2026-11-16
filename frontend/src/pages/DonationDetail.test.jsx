@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import DonationDetail from './DonationDetail'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
@@ -13,6 +13,7 @@ vi.mock('../api', () => ({
     getSolicitacoes: vi.fn(),
     getAvaliacoes: vi.fn(),
     getUsuario: vi.fn(),
+    createAvaliacao: vi.fn(),
   },
 }))
 
@@ -97,13 +98,25 @@ describe('DonationDetail', () => {
     expect(await screen.findByRole('button', { name: /deixar avaliação/i })).toBeInTheDocument()
   })
 
-  it('does not show rating action to the donor of a completed donation', async () => {
+  it('shows rating action to the donor of a completed donation', async () => {
     useUser.mockReturnValue({ user: { id: 1 } })
     mockDonationDetail({ status: 'concluida', receptor: 2 })
+    api.createAvaliacao.mockResolvedValue({})
 
     render(<DonationDetail id={1} />)
 
-    await screen.findByRole('heading', { name: /Doação de Teste/i })
-    expect(screen.queryByRole('button', { name: /deixar avaliação/i })).not.toBeInTheDocument()
+    const openRatingButton = await screen.findByRole('button', { name: /deixar avaliação/i })
+    expect(openRatingButton).toBeInTheDocument()
+    fireEvent.click(openRatingButton)
+    expect(screen.getByRole('heading', { name: /Avaliar receptor/i })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /enviar avaliação/i }))
+    await waitFor(() => {
+      expect(api.createAvaliacao).toHaveBeenCalledWith(expect.objectContaining({
+        doacao: 1,
+        avaliador: 1,
+        avaliado: 2,
+      }))
+    })
   })
 })

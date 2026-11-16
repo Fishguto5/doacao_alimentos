@@ -56,7 +56,7 @@ export default function DonationDetail({ id }) {
   const mySolicitation = user && solicitacoes.find(s => s.solicitante === user.id)
   const canRequest = user && doacao?.status === 'disponivel' && !isDonor && !mySolicitation
   const myRating = user && avaliacoes.find(a => a.avaliador === user.id)
-  const canRate = user && doacao?.status === 'concluida' && !myRating && isReceptor && doacao?.doador
+  const canRate = user && doacao?.status === 'concluida' && !myRating && (isReceptor || isDonor) && (isReceptor ? doacao?.doador : doacao?.receptor)
 
   async function handleRequest(e) {
     e?.preventDefault?.()
@@ -130,7 +130,7 @@ export default function DonationDetail({ id }) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const avaliado = doacao.doador
+      const avaliado = isReceptor ? doacao.doador : doacao.receptor
       await api.createAvaliacao({ doacao: doacao.id, avaliador: user.id, avaliado, nota: ratingForm.nota, comentario: ratingForm.comentario })
       setFeedback('Avaliação enviada!')
       setShowRating(false)
@@ -365,14 +365,15 @@ export default function DonationDetail({ id }) {
 
           {canRate && !showRating && (
             <div className="sidebar-card">
-              <h3>Avaliar experiência</h3>
+              <h3>Avaliar {isDonor ? 'receptor' : 'experiência'}</h3>
               <button className="btn-primary btn-full" onClick={() => setShowRating(true)}>Deixar avaliação</button>
             </div>
           )}
 
           {showRating && (
             <div className="sidebar-card">
-              <h3>Avaliar</h3>
+              <h3>Avaliar {isDonor ? 'receptor' : 'experiência'}</h3>
+              {isDonor && <p className="rating-target">Como foi a experiência com o receptor?</p>}
               <form onSubmit={handleRating}>
                 <div className="form-group">
                   <label>Nota (1–5)</label>

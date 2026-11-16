@@ -625,7 +625,7 @@ def test_receptor_pode_avaliar_doacao_concluida(api_client):
 
 
 @pytest.mark.django_db
-def test_doador_nao_pode_avaliar_doacao_mesmo_concluida(api_client):
+def test_doador_pode_avaliar_receptor_de_doacao_concluida(api_client):
     seed = uuid.uuid4().hex[:8]
     doacao, doador, receptor = _create_doacao_para_avaliacao(seed)
 
@@ -636,14 +636,36 @@ def test_doador_nao_pode_avaliar_doacao_mesmo_concluida(api_client):
             "avaliador": doador.id,
             "avaliado": receptor.id,
             "nota": 4,
-            "comentario": "Tentativa invalida do doador.",
+            "comentario": "Retirada combinada e comunicação excelentes.",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["data"]["avaliador"] == doador.id
+    assert response.data["data"]["avaliado"] == receptor.id
+    assert Avaliacao.objects.filter(doacao=doacao, avaliador=doador).exists()
+
+
+@pytest.mark.django_db
+def test_usuario_de_outra_doacao_nao_pode_avaliar(api_client):
+    seed = uuid.uuid4().hex[:8]
+    doacao, doador, receptor = _create_doacao_para_avaliacao(seed)
+    outro_usuario = _create_usuario(f"{seed}_outro", "Outro")
+
+    response = api_client.post(
+        "/avaliacao/",
+        data={
+            "doacao": doacao.id,
+            "avaliador": outro_usuario.id,
+            "avaliado": doador.id,
+            "nota": 4,
         },
         format="json",
     )
 
     assert response.status_code == 400
     assert "avaliador" in response.data
-    assert not Avaliacao.objects.filter(doacao=doacao, avaliador=doador).exists()
 
 
 @pytest.mark.django_db

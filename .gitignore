@@ -1,28 +1,18 @@
-# Ignorar ambientes virtuais e dependências
-venv/
-.venv/
-.vscode/
-node_modules/
-__pycache__/
-.vscode/
-doacao_alimentos_backend.egg-info/
-.pytest_cache
-
-# Variáveis de ambiente (senhas do banco)
-.env
-
-# Arquivos do banco de dados
-*.sqlite3
-
-# Uploads e arquivos gerados em runtime
-media/
-
-# anotações para rodar comandos como subir front, back, etc
-commands.txt
-prompts.txt
-
-package-lock.json
-
-# migrations precisam ser versionadas para CI/testes
-
-#configuracoes locais 
+# Created by venv; see https://docs.python.org/3/library/venv.html
+*
+!frontend/
+frontend/*
+!frontend/src/
+frontend/src/*
+!frontend/src/components/
+frontend/src/components/*
+!frontend/src/components/MobileNav.jsx
+!frontend/src/pages/
+frontend/src/pages/*
+!frontend/src/pages/ReservationSuccess.jsx
+!frontend/public/
+frontend/public/*
+!frontend/public/figma/
+frontend/public/figma/*
+!frontend/public/figma/*.svg
+!frontend/public/figma/*.png

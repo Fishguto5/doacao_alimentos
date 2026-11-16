@@ -223,14 +223,20 @@ class AvaliacaoSerializer(serializers.ModelSerializer):
                 {"doacao": "A doacao precisa estar concluida para receber avaliacoes."}
             )
 
-        if avaliador.id != doacao.receptor_id:
+        partes = {
+            doacao.doador_id: (doacao.receptor_id, "receptor"),
+            doacao.receptor_id: (doacao.doador_id, "doador"),
+        }
+        parte = partes.get(avaliador.id)
+        if parte is None:
             raise ValidationError(
-                {"avaliador": "Somente o usuario que recebeu a doacao pode avaliar."}
+                {"avaliador": "Somente o doador ou o receptor da doacao pode avaliar."}
             )
 
-        if avaliado.id != doacao.doador_id:
+        avaliado_esperado, _ = parte
+        if avaliado_esperado is None or avaliado.id != avaliado_esperado:
             raise ValidationError(
-                {"avaliado": "A avaliacao deve ser feita para o doador da doacao."}
+                {"avaliado": "A avaliacao deve ser feita para a outra parte da doacao."}
             )
 
         return attrs
