@@ -16,6 +16,7 @@ export default function DonationDetail({ id }) {
   const [solicitacoes, setSolicitacoes] = useState([])
   const [avaliacoes, setAvaliacoes] = useState([])
   const [doador, setDoador] = useState(null)
+  const [receptor, setReceptor] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [requestMsg, setRequestMsg] = useState('')
@@ -39,9 +40,8 @@ export default function DonationDetail({ id }) {
       setAlimentos(allAlimentos.filter(a => a.doacao === d.id))
       setSolicitacoes(allSols.filter(s => s.doacao === d.id))
       setAvaliacoes(allAvals)
-      if (d.doador) {
-        api.getUsuario(d.doador).then(setDoador).catch(() => {})
-      }
+      if (d.doador) api.getUsuario(d.doador).then(setDoador).catch(() => {})
+      if (d.receptor) api.getUsuario(d.receptor).then(setReceptor).catch(() => {})
     } catch (e) {
       setError(e.message)
     } finally {
@@ -57,6 +57,16 @@ export default function DonationDetail({ id }) {
   const canRequest = user && doacao?.status === 'disponivel' && !isDonor && !mySolicitation
   const myRating = user && avaliacoes.find(a => a.avaliador === user.id)
   const canRate = user && doacao?.status === 'concluida' && !myRating && (isReceptor || isDonor) && (isReceptor ? doacao?.doador : doacao?.receptor)
+
+  function ratingAuthor(avaliacao) {
+    if (avaliacao.avaliador === doacao.doador) {
+      return `${doador?.nome || 'Doador'} (doador)`
+    }
+    if (avaliacao.avaliador === doacao.receptor) {
+      return `${receptor?.nome || 'Receptor'} (receptor)`
+    }
+    return 'Usuário (participante)'
+  }
 
   async function handleRequest(e) {
     e?.preventDefault?.()
@@ -248,6 +258,7 @@ export default function DonationDetail({ id }) {
               {avaliacoes.map(av => (
                 <div key={av.id} className="rating-card">
                   <div className="stars">{'★'.repeat(av.nota)}{'☆'.repeat(5 - av.nota)}</div>
+                  <p className="rating-author">{ratingAuthor(av)}</p>
                   {av.comentario && <p>{av.comentario}</p>}
                 </div>
               ))}

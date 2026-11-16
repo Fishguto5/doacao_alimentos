@@ -119,4 +119,21 @@ describe('DonationDetail', () => {
       }))
     })
   })
+
+  it('identifies the author role on each donation rating', async () => {
+    useUser.mockReturnValue({ user: { id: 2 } })
+    mockDonationDetail({ status: 'concluida', receptor: 2 })
+    api.getAvaliacoes.mockResolvedValue([
+      { id: 10, avaliador: 1, avaliado: 2, nota: 5, comentario: 'Tudo certo.' },
+      { id: 11, avaliador: 2, avaliado: 1, nota: 4, comentario: 'Boa experiência.' },
+    ])
+    api.getUsuario.mockImplementation(id => Promise.resolve(
+      Number(id) === 1 ? { id: 1, nome: 'Doador Teste' } : { id: 2, nome: 'Receptor Teste' },
+    ))
+
+    render(<DonationDetail id={1} />)
+
+    expect(await screen.findByText('Doador Teste (doador)')).toBeInTheDocument()
+    expect(screen.getByText('Receptor Teste (receptor)')).toBeInTheDocument()
+  })
 })
