@@ -5,13 +5,15 @@ Um site que tem como objetivo facilitar na doação de alimentos no Brasil atrav
 ### **Integrantes**
 - 245210, Carlos Miguel Costa Santiago da Conceição
 
-- 251055, Gabriel Cunha Marchetti
+- 248243, Caio Enzo dos Santos Nakayama 
 
-- 231528, Vinicius Forato Coracin
+- 205854, Gustavo Fernandes de Carvalho
 
-- 257111, Guilherme Webster Chamoun
+- 176032, Lara Matias Pasquotti
 
-- 260230, Maria Cecília Torres Vianna
+- 176162, Lucas dos Santos Nunes
+
+- 176162, Lucas Eduardo Ferreira
 
 # Inicialização do Repositório:
 
@@ -102,9 +104,9 @@ npm install
 npm run dev
 ```
 
-## Testes Automatizados (Pytest)
+<!-- ## Testes Automatizados (Pytest)
 
-O repositório está configurado para executar testes com `pytest` e `pytest-django` usando o arquivo `pytest.ini` na raiz do projeto.
+O repositório está configurado para executar testes com `pytest` e `pytest-django` usando o arquivo `pytest.ini` na raiz do projeto. -->
 
 ### 1. Preparar ambiente
 
@@ -138,7 +140,7 @@ pytest tests/tests.py
 
 Também dá para executar pela janela de testes do VSCode
 
-### 4. Configurar VS Code para reconhecer os testes
+<!-- ### 4. Configurar VS Code para reconhecer os testes
 
 1. Selecione o interpretador Python do projeto (`.venv`) em **Python: Select Interpreter**.
 2. Abra o painel **Testing** e rode **Python: Discover Tests**.
@@ -162,9 +164,9 @@ feat!: [mensagem]
 
 Para não alterar nenhuma versão do semantic release:
 
-chore: [mensagem]
+chore: [mensagem] -->
 
-## Requirements:
+## Requisitos:
 Python - 3.14.3+
 npm - 10.9.2+
 
@@ -174,9 +176,9 @@ npm - 10.9.2+
 
 Esta seção descreve a arquitetura do **Doe Alimentos**, baseada nos diagramas C4 (Contexto, Container e Componentes) elaborados para o projeto.
 
-## Diagrama C4
+<!-- ## Diagrama C4
 
-Abaixo estão descritos os principais elementos em cada nível de hierarquia do modelo C4:
+Abaixo estão descritos os principais elementos em cada nível de hierarquia do modelo C4: -->
 
 ### 1. Nível de Contexto
 ![Diagrama de Contexto](Diagrama_C4/Contexto.png)
@@ -184,11 +186,11 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 * **Doador/Receptor (Usuário)**: Indivíduo ou instituição que acessa a plataforma para publicar alimentos excedentes ou solicitar doações disponíveis.
 * **Doe Alimentos**: O sistema de software como um todo, que gerencia e conecta doadores e receptores.
 
-### 2. Nível de Containers
+<!-- ### 2. Nível de Containers
 ![Diagrama de Container](Diagrama_C4/Container.png)
 
 ### 3. Nível de Componentes
-![Diagrama de Componente](Diagrama_C4/Componente.png)
+![Diagrama de Componente](Diagrama_C4/Componente.png) -->
 
 ### 3. Nível de Componentes (Componentes)
 
@@ -209,7 +211,7 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 #### Banco de Dados (PostgreSQL): Ambiente de armazenamento das tabelas relacionais do sistema (usuários, doações, solicitações, notificações, avaliações etc).
 
 
-## Estilos Arquiteturais Adotados
+<!-- ## Estilos Arquiteturais Adotados
 
 1. **Cliente-Servidor**: O estilo arquitetural adotado permite a separação de responsabilidades entre o Frontend (ReactJS), focado na interface e interação do usuário, e o Backend, construído como uma Django REST API responsável pelas regras de negócio, validação e persistência de dados. Os dois módulos atuam de forma independente integrando-se através do protocolo HTTP, trocando mensagens no formato JSON. Dessa forma, o desacoplamento possibilita a praticidade no desenvolvimento paralelo, escalabilidade, reusabilidade de código e manutenibilidade do sistema.
 
@@ -280,4 +282,4 @@ No fluxo de desenvolvimento, a introdução de testes automatizados gerou ganhos
 
 Em comparação com o início do semestre, os commits passaram a ser mais consistentes e com propósito mais claro. A adoção de GitHub Issues foi essencial para organizar o processo de resolução de problemas e tornar o trabalho mais transparente. Além disso, a divisão de atividades entre os integrantes ficou mais bem definida, apoiada pelo modelo de projeto escolhido pelo grupo.
 
-Assim, concluímos que as boas práticas de engenharia de software se mostraram efetivas para elevar a qualidade técnica e fortalecer a colaboração da equipe, evidenciando uma evolução concreta no desenvolvimento do projeto.
+Assim, concluímos que as boas práticas de engenharia de software se mostraram efetivas para elevar a qualidade técnica e fortalecer a colaboração da equipe, evidenciando uma evolução concreta no desenvolvimento do projeto. -->
