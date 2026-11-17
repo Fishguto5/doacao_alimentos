@@ -149,14 +149,13 @@ Esta seção descreve a arquitetura do **Doe Alimentos**, baseada nos diagramas 
 
 
 ### 1. Nível de Contexto
-![Diagrama de Contexto](Diagrama_C4/Contexto.png)
 
 * **Doador/Receptor (Usuário)**: Indivíduo ou instituição que acessa a plataforma para publicar alimentos excedentes ou solicitar doações disponíveis.
 * **Doe Alimentos**: O sistema de software como um todo, que gerencia e conecta doadores e receptores.
 
 
 
-### 3. Nível de Componentes (Componentes)
+### 2. Nível de Componentes (Componentes)
 
 #### Frontend (React / Vite)
 * **Tela de Registro**: Pagina para preenchimento do cadastro de novos usuários.
