@@ -13,7 +13,7 @@ Um site que tem como objetivo facilitar na doação de alimentos no Brasil atrav
 
 - 176162, Lucas dos Santos Nunes
 
-- 176162, Lucas Eduardo Ferreira
+- 249893, Lucas Eduardo Ferreira
 
 # Inicialização do Repositório:
 
@@ -104,10 +104,6 @@ npm install
 npm run dev
 ```
 
-<!-- ## Testes Automatizados (Pytest)
-
-O repositório está configurado para executar testes com `pytest` e `pytest-django` usando o arquivo `pytest.ini` na raiz do projeto. -->
-
 ### 1. Preparar ambiente
 
 Crie e ative o ambiente virtual:
@@ -140,31 +136,6 @@ pytest tests/tests.py
 
 Também dá para executar pela janela de testes do VSCode
 
-<!-- ### 4. Configurar VS Code para reconhecer os testes
-
-1. Selecione o interpretador Python do projeto (`.venv`) em **Python: Select Interpreter**.
-2. Abra o painel **Testing** e rode **Python: Discover Tests**.
-3. O VS Code usa as configurações de `.vscode/settings.json` para chamar o pytest na pasta `tests`, é lá que devem ficar seus testes.
-
-Observação: use `pytest` (sem `-c tests/pytest.ini`). O arquivo de configuração válido está na raiz (`pytest.ini`).
-
-# Padronização dos commits para alteração do semantic release.
-
-Para incremento da versão patch utilize a mensagem dentro do commit:
-
-fix: [mensagem]
-
-Para incremento da versão minor utilize a mensagem dentro do commit:
-
-feat: [mensagem]
-
-Para incremento da versão major utilize a mensagem dentro do commit:
-
-feat!: [mensagem]
-
-Para não alterar nenhuma versão do semantic release:
-
-chore: [mensagem] -->
 
 ## Requisitos:
 Python - 3.14.3+
@@ -176,9 +147,6 @@ npm - 10.9.2+
 
 Esta seção descreve a arquitetura do **Doe Alimentos**, baseada nos diagramas C4 (Contexto, Container e Componentes) elaborados para o projeto.
 
-<!-- ## Diagrama C4
-
-Abaixo estão descritos os principais elementos em cada nível de hierarquia do modelo C4: -->
 
 ### 1. Nível de Contexto
 ![Diagrama de Contexto](Diagrama_C4/Contexto.png)
@@ -186,11 +154,7 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 * **Doador/Receptor (Usuário)**: Indivíduo ou instituição que acessa a plataforma para publicar alimentos excedentes ou solicitar doações disponíveis.
 * **Doe Alimentos**: O sistema de software como um todo, que gerencia e conecta doadores e receptores.
 
-<!-- ### 2. Nível de Containers
-![Diagrama de Container](Diagrama_C4/Container.png)
 
-### 3. Nível de Componentes
-![Diagrama de Componente](Diagrama_C4/Componente.png) -->
 
 ### 3. Nível de Componentes (Componentes)
 
@@ -208,78 +172,5 @@ Abaixo estão descritos os principais elementos em cada nível de hierarquia do 
 * **Controlador de Solicitações**: Trata da reserva e manifestação de interesse em doações.
 * **Controlador de Notificações e Avaliações**: Gerencia o envio de avisos de alteração de status e o sistema de reputação e notas dos usuários.
 
-#### Banco de Dados (PostgreSQL): Ambiente de armazenamento das tabelas relacionais do sistema (usuários, doações, solicitações, notificações, avaliações etc).
 
 
-<!-- ## Estilos Arquiteturais Adotados
-
-1. **Cliente-Servidor**: O estilo arquitetural adotado permite a separação de responsabilidades entre o Frontend (ReactJS), focado na interface e interação do usuário, e o Backend, construído como uma Django REST API responsável pelas regras de negócio, validação e persistência de dados. Os dois módulos atuam de forma independente integrando-se através do protocolo HTTP, trocando mensagens no formato JSON. Dessa forma, o desacoplamento possibilita a praticidade no desenvolvimento paralelo, escalabilidade, reusabilidade de código e manutenibilidade do sistema.
-
-2. **Arquitetura em Camadas (Layered Architecture)**: O Backend, desenvolvido em Django, organiza-se de maneira modular semelhante a arquiterua característica em camadas de forma:
-   * **Camada de Apresentação (REST/HTTP)**: Controlada pelas `views.py` e `serializers.py` do Django REST Framework (DRF). Atua como a interface de comunicação HTTP, sendo responsável por receber as requisições, rotear chamadas, serializar os dados (JSON) e garantir a validação sintática.
-   * **Camada de Negócio (Services)**: Módulo dedicado as regras de negócio da aplicação. Essa separação permite que a lógica central do aplicativo de doações seja independente da interface web ou do banco de dados.
-   * **Camada de Acesso a Dados (Persistence/ORM)**: Corresponde a camada de acesso ao banco de dados (PostgreSQL) por meio do ORM do Django, possibilitando a ponte de comunicação para a tradução dos objetos do sistema em estruturas relacionais.
-   
-### Padrão de Projeto (State)
-O padrão de projeto State foi adotado no post de doação para representar fase do ciclo de vida de cada doação (disponível, reservada, concluída, expirada, cancelada) como um comportamento distinto. A lógica de transição e as ações permitidas ficam encapsuladas na respectiva classe de estado. Dessa forma evita if/else espalhados no backend, deixando mais claro a função de cada status e facilitando a manutenção de cada fase do ciclo de vida.
-
-### Processo de desenvolvimento:
-
-Para padronizar a contribuicao no projeto, adotamos um fluxo simples com validacoes locais e CI.
-
-1. **Planejamento**
-    - Trabalhe a partir de uma Issue dentro do Github.
-
-2. **Branching**
-    - Crie branch a partir da `main`:
-       - `feat/<nome-curto>` para funcionalidade
-       - `fix/<nome-curto>` para correcao
-       - `chore/<nome-curto>` para ajustes tecnicos/documentacao
-   - Apesar desse padrão não ter sido seguido para nomeação das branches, achamos satisfatório o uso para mensagens dentro dos commits, isso além de gerar uma documentação para cada commit identificando a sua funcionalidade dentro do projeto, ajudou que o sistema do Github Actions identificasse patches e já atualizasse o semantic version adotado dentro do projeto.
-
-3. **Desenvolvimento local**
-    - Backend:
-       - `pip install -e ".[dev]"`
-       - `python manage.py migrate`
-       - `python manage.py runserver`
-    - Frontend:
-       - `cd frontend && npm install && npm run dev`
-
-4. **Qualidade antes do push**
-    - Backend:
-       - `ruff check .`
-       - `black --check .`
-       - `python manage.py makemigrations --check --dry-run`
-       - `pytest -v`
-    - Frontend:
-       - `cd frontend && npm run lint`
-       - `cd frontend && npm run test:run -- --reporter=verbose`
-       - `cd frontend && npm run build`
-
-5. **Commits e versionamento**
-    - Seguimos Conventional Commits para semantic-release:
-       - `fix: ...` -> patch
-       - `feat: ...` -> minor
-       - `feat!: ...` -> major
-       - `chore: ...` -> sem alteracao de versao
-
-6. **Pull Request e merge**
-    - Abra PR para `main` com:
-       - contexto do problema
-       - mudancas realizadas
-       - passos de validacao
-       - riscos/impactos
-    - Realize merge apenas com CI aprovado e review concluido.
-
-7. **Pos-merge**
-    - O release e gerado automaticamente no push da `main` via semantic-release.
-
-Ao longo do projeto, observamos que o processo de desenvolvimento adotado pelo grupo se tornou mais robusto dentro do escopo proposto. Conseguimos cumprir as entregas com ciclos iterativos de correção e evolução, ampliando a cobertura de testes e aprimorando o pipeline de CI/CD com GitHub Actions, entre outras melhorias relevantes.
-
-Também identificamos pontos de correção por meio da análise de code smells, o que nos permitiu consultar catálogos de refatoração e alinhar a solução a padrões de engenharia de software. Esses padrões foram incorporados à arquitetura do sistema, em linha com práticas comuns na indústria para aplicações semelhantes.
-
-No fluxo de desenvolvimento, a introdução de testes automatizados gerou ganhos claros de qualidade. Diversos commits inicialmente apresentaram falhas de validação, e isso nos ajudou a corrigir problemas mais cedo e propor melhorias contínuas. Com isso, entendemos que construir um sistema robusto também significa criar um ambiente preparado para lidar com falhas conhecidas.
-
-Em comparação com o início do semestre, os commits passaram a ser mais consistentes e com propósito mais claro. A adoção de GitHub Issues foi essencial para organizar o processo de resolução de problemas e tornar o trabalho mais transparente. Além disso, a divisão de atividades entre os integrantes ficou mais bem definida, apoiada pelo modelo de projeto escolhido pelo grupo.
-
-Assim, concluímos que as boas práticas de engenharia de software se mostraram efetivas para elevar a qualidade técnica e fortalecer a colaboração da equipe, evidenciando uma evolução concreta no desenvolvimento do projeto. -->
