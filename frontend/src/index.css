@@ -606,7 +606,7 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
 }
 
 /* Figma: navigation state, notification dialog and content details */
-.nav-links .nav-link:first-child { border-bottom: 2px solid #3d8b6e; border-radius: 0; color: #166b4e; }
+.nav-links .nav-link.active { border-bottom: 2px solid #3d8b6e; border-radius: 0; color: #166b4e; }
 .nav-links .new-donation-link { padding: 10px 18px; border-radius: 999px; background: #ffb800; color: #2d260f; font-size: 13px; font-weight: 800; box-shadow: 0 5px 12px rgba(207,111,0,.18); }
 .nav-donation-plus { display: inline-grid; width: 18px; height: 18px; margin-right: 5px; place-items: center; border-radius: 50%; background: #2d260f; color: #ffd876; font-size: 15px; line-height: 1; }
 .user-menu { gap: 12px; }
@@ -709,6 +709,8 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
   .mobile-bottom-nav img { width: 40px; height: 40px; object-fit: contain; }
   .mobile-bottom-nav .mobile-nav-add { color: #e9873a; }
   .mobile-bottom-nav .mobile-nav-add img { width: 50px; height: 50px; margin: -6px 0 -1px; }
+  .mobile-bottom-nav button { position: relative; }
+  .mobile-notification-count { position: absolute; top: 3px; left: calc(50% + 13px); min-width: 18px; height: 18px; padding: 0 3px; display: grid; place-items: center; border: 2px solid #1d5a43; border-radius: 99px; background: #e7463d; color: #fff; font-size: 9px; font-weight: 800; }
 
   .user-profile-page { padding-top: 0; }
   .user-profile-page > .mobile-detail-header { width: calc(100% + 38px); margin: 0 0 20px -19px; position: sticky; top: 0; z-index: 120; height: 79px; display: flex; align-items: center; justify-content: center; background: #1d5a43; color: #f4f5ee; font-size: 25px; }

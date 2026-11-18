@@ -24,3 +24,4 @@ core/*
 !core/migrations/
 core/migrations/*
 !core/migrations/0007_mensagem_chat.py
+!core/signals.py

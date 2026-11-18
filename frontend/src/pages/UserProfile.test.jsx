@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import UserProfile from './UserProfile'
 import MobileNav from '../components/MobileNav'
 import Header from '../components/Header'
@@ -53,7 +53,17 @@ describe('UserProfile mobile navigation and donations', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Minhas doações/ }))
     expect(await screen.findByText('Cesta de alimentos')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Mensagens' }))
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Navegação principal' })).getByRole('button', { name: 'Mensagens' }))
+    expect(window.location.hash).toBe('#/chat')
+  })
+
+  it('opens the same chat from the desktop header', () => {
+    window.location.hash = '#/'
+    render(<Header />)
+
+    const desktopNav = screen.getByRole('navigation', { name: 'Navegação desktop' })
+    fireEvent.click(within(desktopNav).getByRole('button', { name: 'Mensagens' }))
+
     expect(window.location.hash).toBe('#/chat')
   })
 
@@ -68,5 +78,20 @@ describe('UserProfile mobile navigation and donations', () => {
     await waitFor(() => expect(api.deleteDoacao).toHaveBeenCalledWith(10))
     expect(screen.queryByText('Cesta de alimentos')).not.toBeInTheDocument()
     expect(screen.getByText('Doação excluída com sucesso.')).toBeInTheDocument()
+  })
+
+  it('updates the bell and mobile badge when a notification arrives', async () => {
+    window.location.hash = '#/'
+    render(<><Header /><MobileNav /></>)
+    await waitFor(() => expect(api.getNotificacoes).toHaveBeenCalledTimes(2))
+
+    api.getNotificacoes.mockResolvedValue([
+      { id: 99, usuario: 1, doacao: 10, mensagem: 'Sua doação foi reservada.', status: 'pendente', created_at: '2026-11-17T10:00:00Z' },
+      { id: 100, usuario: 2, doacao: 10, mensagem: 'Outra pessoa', status: 'pendente', created_at: '2026-11-17T10:00:00Z' },
+    ])
+    window.dispatchEvent(new Event('notifications-updated'))
+
+    expect(await screen.findByRole('button', { name: 'Notificações, 1 não lidas' })).toBeInTheDocument()
+    expect(screen.getByLabelText('1 notificações não lidas')).toBeInTheDocument()
   })
 })

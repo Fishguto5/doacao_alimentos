@@ -21,6 +21,7 @@ const SOL_STATUS_LABELS = {
 
 export default function UserProfile() {
   const { user, login, logout } = useUser()
+  const userId = user?.id
   const hash = useRouter()
   const requestedTab = new URLSearchParams(hash.split('?')[1] || '').get('tab')
   const tab = ['doacoes', 'solicitacoes', 'notificacoes', 'perfil'].includes(requestedTab) ? requestedTab : 'doacoes'
@@ -36,23 +37,44 @@ export default function UserProfile() {
   const [feedback, setFeedback] = useState('')
 
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       navigate('#/register')
       return
     }
 
-    Promise.all([
+    Promise.allSettled([
       api.getDoacoes(),
       api.getSolicitacoes(),
       api.getNotificacoes(),
     ]).then(([d, s, n]) => {
-      setDoacoes(d.filter(x => x.doador === user.id))
-      setTitulosDoacoes(Object.fromEntries(d.map(x => [x.id, x.titulo])))
-      setSolicitacoes(s.filter(x => x.solicitante === user.id))
-      setNotificacoes(n.filter(x => x.usuario === user.id))
+      if (d.status === 'fulfilled') {
+        setDoacoes(d.value.filter(x => Number(x.doador) === Number(userId)))
+        setTitulosDoacoes(Object.fromEntries(d.value.map(x => [x.id, x.titulo])))
+      }
+      if (s.status === 'fulfilled') setSolicitacoes(s.value.filter(x => Number(x.solicitante) === Number(userId)))
+      if (n.status === 'fulfilled') setNotificacoes(n.value.filter(x => Number(x.usuario) === Number(userId)))
       setLoading(false)
-    }).catch(() => setLoading(false))
-  }, [user])
+    })
+  }, [userId, tab])
+
+  useEffect(() => {
+    if (!user?.id || tab !== 'notificacoes') return undefined
+    let active = true
+    const refresh = () => api.getNotificacoes()
+      .then(list => {
+        if (active) setNotificacoes(list.filter(n => Number(n.usuario) === Number(user.id)))
+      })
+      .catch(() => {})
+    const timer = window.setInterval(refresh, 15000)
+    window.addEventListener('focus', refresh)
+    window.addEventListener('notifications-updated', refresh)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refresh)
+      window.removeEventListener('notifications-updated', refresh)
+    }
+  }, [user?.id, tab])
 
   useEffect(() => {
     if (user) {
@@ -104,6 +126,7 @@ export default function UserProfile() {
     try {
       await api.updateNotificacao({ id: notifId, status: 'lida' })
       setNotificacoes(list => list.map(n => n.id === notifId ? { ...n, status: 'lida' } : n))
+      window.dispatchEvent(new Event('notifications-updated'))
     } catch {
       // Ignora falhas de atualização para não bloquear a navegação do usuário.
     }
@@ -231,7 +254,7 @@ export default function UserProfile() {
                 <div className="empty-state"><p>Nenhuma notificacao.</p></div>
               ) : (
                 <div className="notificacoes-list">
-                  {notificacoes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(n => (
+                  {[...notificacoes].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(n => (
                     <div key={n.id} className={`notification-item${n.status === 'pendente' ? ' unread' : ''}`}>
                       <div className="notification-body">
                         <p>{n.mensagem}</p>

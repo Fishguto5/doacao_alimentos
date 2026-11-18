@@ -1,35 +1,51 @@
 import { useUser } from '../context/UserContext'
 import { navigate } from '../router'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '../api'
 import { useRouter } from '../router'
 
 export default function Header() {
   const { user, logout } = useUser()
+  const userId = user?.id
   const hash = useRouter()
   const pathname = hash.replace('#', '').split('?')[0]
   const isMobileDetailRoute = pathname.startsWith('/donation/') || pathname.startsWith('/reservation-success/') || pathname === '/profile' || pathname === '/chat'
   const [notifCount, setNotifCount] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [notificationsOpen, setNotificationsOpen] = useState(Boolean(user))
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [notificationNow, setNotificationNow] = useState(null)
   const notificationRef = useRef(null)
 
-  useEffect(() => {
-    if (!user) return
+  const refreshNotifications = useCallback(() => {
+    if (!userId) return
     api.getNotificacoes()
       .then(list => {
         setNotificationNow(Date.now())
         const own = list
-          .filter(n => n.usuario === user.id)
+          .filter(n => Number(n.usuario) === Number(userId))
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         setNotifications(own)
         setNotifCount(own.filter(n => n.status === 'pendente').length)
       })
       .catch(() => {})
-  }, [user])
+  }, [userId])
+
+  useEffect(() => {
+    if (!userId) {
+      return undefined
+    }
+    refreshNotifications()
+    const timer = window.setInterval(refreshNotifications, 15000)
+    window.addEventListener('focus', refreshNotifications)
+    window.addEventListener('notifications-updated', refreshNotifications)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refreshNotifications)
+      window.removeEventListener('notifications-updated', refreshNotifications)
+    }
+  }, [userId, refreshNotifications])
 
   useEffect(() => {
     function closeOnOutsideClick(event) {
@@ -60,6 +76,7 @@ export default function Header() {
     const readIds = new Set(unread.filter((_, index) => results[index].status === 'fulfilled').map(n => n.id))
     setNotifications(current => current.map(n => readIds.has(n.id) ? { ...n, status: 'lida' } : n))
     setNotifCount(count => Math.max(0, count - readIds.size))
+    window.dispatchEvent(new Event('notifications-updated'))
   }
 
   function notificationTime(value) {
@@ -125,12 +142,15 @@ export default function Header() {
           <span className="logo-text">DoacaoAlimentos</span>
         </button>
 
-        <nav className="nav-links">
-          <button className="nav-link" onClick={() => go('#/')}>Doações</button>
+        <nav className="nav-links" aria-label="Navegação desktop">
+          <button className={`nav-link${pathname === '/' ? ' active' : ''}`} onClick={() => go('#/')}>Doações</button>
           {user && (
-            <button className="nav-link new-donation-link" onClick={() => go('#/create')}>
-              <span className="nav-donation-plus" aria-hidden="true">+</span> Nova Doação
-            </button>
+            <>
+              <button className={`nav-link${pathname === '/chat' ? ' active' : ''}`} onClick={() => go('#/chat')}>Mensagens</button>
+              <button className="nav-link new-donation-link" onClick={() => go('#/create')}>
+                <span className="nav-donation-plus" aria-hidden="true">+</span> Nova Doação
+              </button>
+            </>
           )}
         </nav>
 
@@ -140,7 +160,7 @@ export default function Header() {
               <div className="notification-menu" ref={notificationRef}>
                 <button
                   className="notif-btn"
-                  onClick={() => { setNotificationsOpen(open => !open); setMenuOpen(false) }}
+                  onClick={() => { refreshNotifications(); setNotificationsOpen(open => !open); setMenuOpen(false) }}
                   title="Notificações"
                   aria-label={`Notificações${notifCount ? `, ${notifCount} não lidas` : ''}`}
                   aria-expanded={notificationsOpen}
@@ -202,6 +222,7 @@ export default function Header() {
                   <button onClick={() => go('#/profile')}>Meu Perfil</button>
                   <button onClick={() => go('#/profile?tab=doacoes')}>Minhas Doações</button>
                   <button onClick={() => go('#/profile?tab=solicitacoes')}>Minhas Solicitações</button>
+                  <button onClick={() => go('#/chat')}>Mensagens</button>
                   <button onClick={() => go('#/profile?tab=notificacoes')}>Notificações {notifCount > 0 && `(${notifCount})`}</button>
                   <hr />
                   <button onClick={logout} className="logout-btn">Sair</button>

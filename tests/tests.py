@@ -322,6 +322,70 @@ def test_chat_exige_reserva_e_texto(api_client):
     ).status_code == 400
 
 
+@pytest.mark.django_db
+def test_notificacoes_sao_criadas_nos_eventos_da_doacao(api_client):
+    doador = _create_usuario("notif_doador", "Doador")
+    receptor = _create_usuario("notif_receptor", "Receptor")
+    criada = api_client.post(
+        "/doacao/",
+        {
+            "doador": doador.id,
+            "titulo": "Cesta para compartilhar",
+            "descricao": "Alimentos para retirada",
+            "cep": "13000000",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "bairro": "Centro",
+            "logradouro": "Rua Teste",
+        },
+        format="json",
+    )
+    assert criada.status_code == 201
+    doacao = Doacao.objects.get(pk=criada.data["data"]["id"])
+    assert Notificacao.objects.filter(usuario=doador, doacao=doacao, mensagem__contains="foi criada").count() == 1
+
+    solicitacao = api_client.post(
+        "/solicitacao-doacao/",
+        {"doacao": doacao.id, "solicitante": receptor.id, "mensagem": "Posso retirar?"},
+        format="json",
+    )
+    assert solicitacao.status_code == 201
+    assert Notificacao.objects.filter(usuario=doador, doacao=doacao, mensagem__contains="Nova solicitação").count() == 1
+
+    aceita = api_client.post(f"/solicitacao-doacao/{solicitacao.data['data']['id']}/aceitar/")
+    assert aceita.status_code == 200
+    assert Notificacao.objects.filter(usuario=doador, doacao=doacao, mensagem__contains="foi reservada").count() == 1
+    assert Notificacao.objects.filter(usuario=receptor, doacao=doacao, mensagem__contains="foi confirmada").count() == 1
+
+    login = api_client.post(
+        "/auth/login/", {"email": doador.email, "password": "senha12345"}, format="json"
+    )
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['data']['auth_token']}")
+    mensagem = api_client.post(
+        "/mensagem-chat/", {"doacao": doacao.id, "texto": "Pode retirar amanhã"}, format="json"
+    )
+    assert mensagem.status_code == 201
+    assert Notificacao.objects.filter(usuario=receptor, doacao=doacao, mensagem__contains="Nova mensagem").count() == 1
+    assert not Notificacao.objects.filter(usuario=doador, doacao=doacao, mensagem__contains="Nova mensagem").exists()
+
+    doacao.status = "concluida"
+    doacao.data_conclusao = timezone.now()
+    doacao.save(update_fields=["status", "data_conclusao"])
+    avaliacao = api_client.post(
+        "/avaliacao/",
+        {"doacao": doacao.id, "avaliador": receptor.id, "avaliado": doador.id, "nota": 5, "comentario": "Ótima entrega"},
+        format="json",
+    )
+    assert avaliacao.status_code == 201
+    assert Notificacao.objects.filter(usuario=doador, doacao=doacao, mensagem__contains="avaliou você").count() == 1
+    assert not Notificacao.objects.filter(usuario=receptor, doacao=doacao, mensagem__contains="avaliou você").exists()
+
+    # Edições não devem gerar notificações duplicadas.
+    api_client.patch("/doacao/", {"id": doacao.id, "descricao": "Atualizada"}, format="json")
+    api_client.patch("/avaliacao/", {"id": avaliacao.data["data"]["id"], "comentario": "Muito boa"}, format="json")
+    assert Notificacao.objects.filter(doacao=doacao).count() == 6
+
+
 def _usuario_payload(seed: str, prefix: str = "Usuario") -> dict:
     return {
         "nome": f"{prefix} {seed}",

@@ -62,6 +62,12 @@ const request = async (method, path, body, params) => {
     throw new Error(`Resposta inválida do servidor (HTTP ${res.status})`)
   }
 
+  if (method !== 'GET' && [
+    '/doacao/', '/solicitacao-doacao/', '/mensagem-chat/', '/avaliacao/',
+  ].some(route => formattedPath.startsWith(route))) {
+    window.dispatchEvent(new Event('notifications-updated'))
+  }
+
   return json.data
 }
 
