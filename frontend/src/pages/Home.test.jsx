@@ -8,6 +8,7 @@ vi.mock('../api', () => ({
     getCategorias: vi.fn(),
     getCidades: vi.fn(),
     getDoacoes: vi.fn(),
+    getAvaliacoes: vi.fn(),
   },
 }))
 
@@ -51,6 +52,7 @@ describe('Home', () => {
       { id: 2, nome: 'Legumes' },
     ])
     api.getCidades.mockResolvedValue(['Campinas', 'São Paulo'])
+    api.getAvaliacoes.mockResolvedValue([])
     // Mock permanente: sempre retorna a lista completa por padrão.
     // Cada teste redefine com mockResolvedValueOnce quando precisa de um retorno diferente.
     api.getDoacoes.mockResolvedValue([DOACAO_FRUTAS, DOACAO_LEGUMES])

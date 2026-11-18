@@ -14,12 +14,14 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(Boolean(user))
   const [notifications, setNotifications] = useState([])
+  const [notificationNow, setNotificationNow] = useState(null)
   const notificationRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
     api.getNotificacoes()
       .then(list => {
+        setNotificationNow(Date.now())
         const own = list
           .filter(n => n.usuario === user.id)
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -61,8 +63,8 @@ export default function Header() {
   }
 
   function notificationTime(value) {
-    if (!value) return ''
-    const hours = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 3600000))
+    if (!value || notificationNow === null) return ''
+    const hours = Math.max(0, Math.floor((notificationNow - new Date(value).getTime()) / 3600000))
     if (hours < 1) return 'agora'
     if (hours < 24) return `há ${hours} h`
     const days = Math.floor(hours / 24)
@@ -93,9 +95,10 @@ export default function Header() {
         <div className="mobile-drawer-backdrop" onClick={() => setMobileMenuOpen(false)}>
           <aside id="mobile-side-menu" className="mobile-drawer" aria-label="Menu lateral" onClick={event => event.stopPropagation()}>
             <div className="mobile-drawer-heading">
-              <strong>DoacaoAlimentos</strong>
+              <strong><img src="/figma/brand-leaf.svg" alt="" /> DoacaoAlimentos</strong>
               <button type="button" aria-label="Fechar menu" onClick={() => setMobileMenuOpen(false)}>×</button>
             </div>
+            <p className="mobile-drawer-eyebrow">Sua comunidade</p>
             {user ? (
               <>
                 <button type="button" onClick={() => go('#/profile?tab=perfil')}>Meu perfil</button>
@@ -112,6 +115,7 @@ export default function Header() {
                 window.dispatchEvent(new Event('toggle-donation-filters'))
               }}>Filtros de doações</button>
             )}
+            <div className="mobile-drawer-footer"><span aria-hidden="true">✦</span> Compartilhe alimentos, transforme vidas.</div>
           </aside>
         </div>
       )}

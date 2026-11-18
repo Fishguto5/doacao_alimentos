@@ -271,6 +271,57 @@ def _create_doacao_para_avaliacao(
     return doacao, doador, receptor
 
 
+@pytest.mark.django_db
+def test_chat_permite_mensagens_apenas_entre_doador_e_receptor(api_client):
+    doacao, doador, receptor = _create_doacao_para_avaliacao("chat")
+    estranho = _create_usuario("chat_estranho", "Estranho")
+
+    def auth(usuario):
+        response = api_client.post(
+            "/auth/login/", {"email": usuario.email, "password": "senha12345"}, format="json"
+        )
+        assert response.status_code == 200
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['data']['auth_token']}")
+
+    auth(doador)
+    sent = api_client.post(
+        "/mensagem-chat/", {"doacao": doacao.id, "texto": "Vamos combinar a retirada", "remetente": estranho.id}, format="json"
+    )
+    assert sent.status_code == 201
+    assert sent.data["data"]["remetente"] == doador.id
+
+    auth(receptor)
+    received = api_client.get(f"/mensagem-chat/?doacao={doacao.id}")
+    assert received.status_code == 200
+    assert [item["texto"] for item in received.data["data"]] == ["Vamos combinar a retirada"]
+
+    auth(estranho)
+    assert api_client.get("/mensagem-chat/").data["data"] == []
+    assert api_client.post(
+        "/mensagem-chat/", {"doacao": doacao.id, "texto": "Invasão"}, format="json"
+    ).status_code == 403
+
+    api_client.credentials()
+    assert api_client.get("/mensagem-chat/").status_code == 401
+
+
+@pytest.mark.django_db
+def test_chat_exige_reserva_e_texto(api_client):
+    doacao, doador, _ = _create_doacao_para_avaliacao("sem_reserva")
+    doacao.receptor = None
+    doacao.save(update_fields=["receptor"])
+    login = api_client.post(
+        "/auth/login/", {"email": doador.email, "password": "senha12345"}, format="json"
+    )
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['data']['auth_token']}")
+    assert api_client.post(
+        "/mensagem-chat/", {"doacao": doacao.id, "texto": "Olá"}, format="json"
+    ).status_code == 400
+    assert api_client.post(
+        "/mensagem-chat/", {"doacao": doacao.id, "texto": "   "}, format="json"
+    ).status_code == 400
+
+
 def _usuario_payload(seed: str, prefix: str = "Usuario") -> dict:
     return {
         "nome": f"{prefix} {seed}",

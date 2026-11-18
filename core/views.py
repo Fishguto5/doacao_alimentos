@@ -1,7 +1,10 @@
 import datetime
+import hashlib
 
+from django.core import signing
 from django.contrib.auth.hashers import check_password, identify_hasher, make_password
 from django.db import transaction
+from django.db.models import Q
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -18,6 +21,7 @@ from core.models import (
     Categoria,
     Doacao,
     DoacaoStatus,
+    MensagemChat,
     Notificacao,
     SolicitacaoDoacao,
     Usuario,
@@ -28,6 +32,7 @@ from core.serializers import (
     AvaliacaoSerializer,
     CategoriaSerializer,
     DoacaoSerializer,
+    MensagemChatSerializer,
     NotificacaoSerializer,
     SolicitacaoDoacaoSerializer,
     UsuarioSerializer,
@@ -43,7 +48,31 @@ DELETE_ID_SERIALIZER = inline_serializer(
 
 
 def _usuario_response_data(usuario):
-    return UsuarioSerializer(usuario).data
+    return {
+        **UsuarioSerializer(usuario).data,
+        "auth_token": signing.dumps(
+            {"usuario_id": usuario.id, "senha_versao": hashlib.sha256(usuario.password.encode()).hexdigest()},
+            salt="doacao-chat-auth",
+        ),
+    }
+
+
+def _usuario_chat(request):
+    authorization = request.headers.get("Authorization", "")
+    if not authorization.startswith("Bearer "):
+        return None
+    try:
+        payload = signing.loads(
+            authorization.removeprefix("Bearer "),
+            salt="doacao-chat-auth",
+            max_age=60 * 60 * 24 * 30,
+        )
+        usuario = Usuario.objects.filter(pk=payload["usuario_id"]).first()
+        if usuario and payload["senha_versao"] == hashlib.sha256(usuario.password.encode()).hexdigest():
+            return usuario
+        return None
+    except (signing.BadSignature, KeyError, TypeError):
+        return None
 
 
 def _password_matches(usuario, raw_password):
@@ -739,6 +768,48 @@ def view_alimento(request):
 @api_view(["GET", "POST", "PUT", "PATCH"])
 def view_notificacao(request):
     return _handle_crud(request, Notificacao, NotificacaoSerializer, "Notificacao")
+
+
+@extend_schema(
+    methods=["GET"],
+    tags=["mensagens"],
+    summary="Listar mensagens das doações do usuário autenticado",
+    responses={200: MensagemChatSerializer(many=True)},
+)
+@extend_schema(
+    methods=["POST"],
+    tags=["mensagens"],
+    summary="Enviar mensagem ao outro participante da doação",
+    request=MensagemChatSerializer,
+    responses={201: MensagemChatSerializer},
+)
+@api_view(["GET", "POST"])
+def view_mensagem_chat(request):
+    usuario = _usuario_chat(request)
+    if usuario is None:
+        return Response({"msg": "Entre novamente para acessar as mensagens."}, status=401)
+
+    if request.method == "GET":
+        mensagens = MensagemChat.objects.filter(
+            Q(doacao__doador=usuario) | Q(doacao__receptor=usuario)
+        )
+        doacao_id = request.query_params.get("doacao")
+        if doacao_id:
+            if not doacao_id.isdecimal():
+                return Response({"msg": "ID da doacao invalido."}, status=400)
+            mensagens = mensagens.filter(doacao_id=int(doacao_id))
+        return Response({"data": MensagemChatSerializer(mensagens, many=True).data})
+
+    serializer = MensagemChatSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+    doacao = serializer.validated_data["doacao"]
+    if not doacao.doador_id or not doacao.receptor_id:
+        return Response({"msg": "A doacao precisa estar reservada para trocar mensagens."}, status=400)
+    if usuario.id not in {doacao.doador_id, doacao.receptor_id}:
+        return Response({"msg": "Voce nao participa desta doacao."}, status=403)
+    mensagem = serializer.save(remetente=usuario)
+    return Response({"data": MensagemChatSerializer(mensagem).data}, status=201)
 
 
 # Avaliacao Views

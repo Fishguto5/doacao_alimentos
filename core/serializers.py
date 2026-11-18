@@ -8,6 +8,7 @@ from core.models import (
     Categoria,
     Doacao,
     DoacaoStatus,
+    MensagemChat,
     Notificacao,
     SolicitacaoDoacao,
     Usuario,
@@ -127,6 +128,15 @@ class SolicitacaoDoacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDoacao
         fields = "__all__"
+
+
+class MensagemChatSerializer(serializers.ModelSerializer):
+    texto = serializers.CharField(max_length=2000, trim_whitespace=True)
+
+    class Meta:
+        model = MensagemChat
+        fields = ["id", "doacao", "remetente", "texto", "created_at"]
+        read_only_fields = ["id", "remetente", "created_at"]
 
 
 class AlimentoSerializer(serializers.ModelSerializer):

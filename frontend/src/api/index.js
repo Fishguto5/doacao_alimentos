@@ -8,6 +8,12 @@ export const mediaUrl = (value) => {
 
 const request = async (method, path, body, params) => {
   const opts = { method, headers: {} }
+  if (path.startsWith('/mensagem-chat/')) {
+    try {
+      const token = JSON.parse(localStorage.getItem('doacaoUserAuth'))?.auth_token
+      if (token) opts.headers.Authorization = `Bearer ${token}`
+    } catch { /* Sessão antiga ou armazenamento inválido. */ }
+  }
   if (body !== undefined) {
     if (body instanceof FormData) {
       opts.body = body
@@ -24,7 +30,7 @@ const request = async (method, path, body, params) => {
     : ''
 
   // Garante que o path seja apenas a rota relativa limpa (ex: /auth/register/)
-  const cleanPath = path.replace(/^https?:\/\/[^\/]+/, '').replace(/^\[+/, '').replace(/\]+/, '')
+  const cleanPath = path.replace(/^https?:\/\/[^/]+/, '').replace(/^\[+/, '').replace(/\]+/, '')
   const formattedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`
 
   // Monta a URL final unindo a base do backend com a rota relativa
@@ -96,6 +102,10 @@ export const api = {
   // Notificações
   getNotificacoes: () => request('GET', '/notificacao/'),
   updateNotificacao: (data) => request('PATCH', '/notificacao/', data),
+
+  // Conversas
+  getMensagens: (params) => request('GET', '/mensagem-chat/', undefined, params),
+  sendMensagem: (data) => request('POST', '/mensagem-chat/', data),
 
   // Avaliações
   getAvaliacoes: (params) => request('GET', '/avaliacao/', undefined, params),

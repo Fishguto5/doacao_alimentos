@@ -19,3 +19,8 @@ frontend/public/*
 frontend/public/figma/*
 !frontend/public/figma/*.svg
 !frontend/public/figma/*.png
+!core/
+core/*
+!core/migrations/
+core/migrations/*
+!core/migrations/0007_mensagem_chat.py

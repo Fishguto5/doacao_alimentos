@@ -16,8 +16,12 @@ export function UserProvider({ children }) {
   })
 
   function login(userData) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
-    setUser(userData)
+    const nextUser = {
+      ...userData,
+      auth_token: userData.auth_token || (user?.id === userData.id ? user.auth_token : undefined),
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser))
+    setUser(nextUser)
   }
 
   function logout() {

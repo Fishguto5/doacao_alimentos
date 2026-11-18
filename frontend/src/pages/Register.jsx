@@ -51,6 +51,7 @@ export default function Register() {
       const created = await api.register(payload)
       login({
         id: created.id,
+        auth_token: created.auth_token,
         nome: created.nome,
         email: created.email,
         cidade: created.cidade,
@@ -78,6 +79,7 @@ export default function Register() {
       const found = await api.login({ email: loginEmail, password: loginPassword })
       login({
         id: found.id,
+        auth_token: found.auth_token,
         nome: found.nome,
         email: found.email,
         cidade: found.cidade,

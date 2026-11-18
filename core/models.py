@@ -174,6 +174,21 @@ class SolicitacaoDoacao(models.Model):
         return f"{self.solicitante} -> {self.doacao}"
 
 
+class MensagemChat(models.Model):
+    doacao = models.ForeignKey(
+        "Doacao", on_delete=models.CASCADE, related_name="mensagens_chat"
+    )
+    remetente = models.ForeignKey(
+        "Usuario", on_delete=models.SET_NULL, null=True, related_name="mensagens_enviadas"
+    )
+    texto = models.CharField(max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        indexes = [models.Index(fields=["doacao", "created_at"])]
+
+
 class Alimento(models.Model):
     categoria = models.ForeignKey(
         "Categoria",

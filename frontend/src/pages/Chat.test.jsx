@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import Chat from './Chat'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
@@ -10,6 +10,8 @@ vi.mock('../api', () => ({
     getSolicitacoes: vi.fn(),
     getAvaliacoes: vi.fn(),
     getUsuario: vi.fn(),
+    getMensagens: vi.fn(),
+    sendMensagem: vi.fn(),
   },
 }))
 vi.mock('../context/UserContext', () => ({ useUser: vi.fn() }))
@@ -17,7 +19,7 @@ vi.mock('../context/UserContext', () => ({ useUser: vi.fn() }))
 describe('Chat', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useUser.mockReturnValue({ user: { id: 1, nome: 'Ana' } })
+    useUser.mockReturnValue({ user: { id: 1, nome: 'Ana', auth_token: 'token' } })
     api.getDoacoes.mockResolvedValue([
       { id: 10, doador: 1, receptor: 2, titulo: 'Cesta criada', data_publicacao: '2026-11-01T10:00:00Z' },
       { id: 11, doador: 2, receptor: 1, titulo: 'Cesta reservada', data_publicacao: '2026-11-02T10:00:00Z' },
@@ -35,6 +37,9 @@ describe('Chat', () => {
       { id: 32, doacao: 12, avaliador: 3, comentario: 'Comentário externo', created_at: '2026-11-08T10:00:00Z' },
     ])
     api.getUsuario.mockResolvedValue({ id: 2, nome: 'Bruno' })
+    api.getMensagens.mockResolvedValue([
+      { id: 40, doacao: 10, remetente: 2, texto: 'Podemos combinar a retirada?', created_at: '2026-11-09T10:00:00Z' },
+    ])
   })
 
   afterEach(() => cleanup())
@@ -42,14 +47,29 @@ describe('Chat', () => {
   it('shows comments from donations created or reserved by the user without exposing other requests', async () => {
     render(<Chat />)
 
-    const created = await screen.findByRole('region', { name: 'Comentários de Cesta criada' })
-    const reserved = screen.getByRole('region', { name: 'Comentários de Cesta reservada' })
+    await screen.findByRole('region', { name: 'Conversas' })
+    fireEvent.click(screen.getByRole('button', { name: /Cesta criada/ }))
+    const created = screen.getByRole('region', { name: 'Conversa de Cesta criada' })
     expect(within(created).getByText('Quero retirar esta cesta')).toBeInTheDocument()
     expect(within(created).getByText('Entrega excelente')).toBeInTheDocument()
+    expect(within(created).getByText('Podemos combinar a retirada?')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Cesta reservada/ }))
+    const reserved = screen.getByRole('region', { name: 'Conversa de Cesta reservada' })
     expect(within(reserved).getByText('Posso buscar amanhã')).toBeInTheDocument()
     expect(within(reserved).getByText('Retirada tranquila')).toBeInTheDocument()
     expect(screen.queryByText('Mensagem de outro solicitante')).not.toBeInTheDocument()
     expect(screen.queryByText('Comentário externo')).not.toBeInTheDocument()
     expect(screen.queryByText('Outra doação')).not.toBeInTheDocument()
+  })
+
+  it('sends a message in the selected donation and displays it', async () => {
+    api.sendMensagem.mockResolvedValue({ id: 41, doacao: 10, remetente: 1, texto: 'Sim, amanhã!', created_at: '2026-11-09T11:00:00Z' })
+    render(<Chat />)
+    await screen.findByRole('region', { name: 'Conversas' })
+    fireEvent.click(screen.getByRole('button', { name: /Cesta criada/ }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Sua mensagem' }), { target: { value: 'Sim, amanhã!' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar' }))
+    expect(await within(screen.getByRole('log')).findByText('Sim, amanhã!')).toBeInTheDocument()
+    expect(api.sendMensagem).toHaveBeenCalledWith({ doacao: 10, texto: 'Sim, amanhã!' })
   })
 })
