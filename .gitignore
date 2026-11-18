@@ -10,6 +10,7 @@ frontend/src/components/*
 !frontend/src/pages/
 frontend/src/pages/*
 !frontend/src/pages/ReservationSuccess.jsx
+!frontend/src/pages/UserProfile.test.jsx
 !frontend/public/
 frontend/public/*
 !frontend/public/figma/

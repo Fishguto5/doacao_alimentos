@@ -416,6 +416,10 @@ select.input { appearance: auto; }
 .profile-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); padding-bottom: 0; flex-wrap: wrap; }
 .profile-tab { padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.15s; }
 .profile-tab.active { color: var(--green-800); border-bottom-color: var(--green-800); }
+.profile-donation-item { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.profile-donation-delete { align-self: flex-end; padding: 7px 10px; border: 1px solid var(--red); border-radius: var(--radius-sm); color: var(--red); font-size: 13px; font-weight: 600; }
+.profile-donation-delete:hover:not(:disabled) { background: var(--red-light); }
+.profile-donation-delete:disabled { opacity: .6; cursor: not-allowed; }
 .tab-header { display: flex; justify-content: flex-end; margin-bottom: 16px; }
 .profile-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
 .profile-info-grid > div { display: flex; flex-direction: column; gap: 4px; }
@@ -431,6 +435,7 @@ select.input { appearance: auto; }
 .solicitacoes-list { display: flex; flex-direction: column; gap: 12px; }
 .solicitation-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .solicitation-header { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.solicitation-title { margin-bottom: 6px; color: var(--green-900); font-size: 16px; }
 .solicitation-msg { font-size: 13px; color: var(--text-muted); font-style: italic; margin-bottom: 8px; }
 .notificacoes-list { display: flex; flex-direction: column; gap: 8px; }
 .notification-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; justify-content: space-between; gap: 12px; }
@@ -609,7 +614,7 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
 }
 
 /* Responsive layouts based on Figma mobile/tablet frames 22:158, 1:456 and 1:482 */
-.mobile-home-toolbar, .mobile-list-heading, .mobile-detail-header, .mobile-donation-summary, .mobile-reserve-cta, .mobile-bottom-nav, .reservation-success-card { display: none; }
+.mobile-home-toolbar, .mobile-list-heading, .mobile-detail-header, .mobile-donation-summary, .mobile-reserve-cta, .mobile-delete-donation, .mobile-bottom-nav, .reservation-success-card { display: none; }
 
 @media (max-width: 900px) {
   body { background: #f4f5ee; }
@@ -652,8 +657,17 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
   .mobile-bottom-nav { position: fixed; z-index: 150; right: 0; bottom: 0; left: 0; height: 75px; padding: 4px 5px 3px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; background: #1d5a43; color: #fff; }
   .mobile-bottom-nav button { min-width: 0; height: 68px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; color: inherit; font-size: 10px; line-height: 11px; font-weight: 600; text-align: center; }
   .mobile-bottom-nav img { width: 40px; height: 40px; object-fit: contain; }
+  .mobile-bottom-nav .mobile-nav-profile img { width: 32px; height: 32px; margin: 4px 0; filter: invert(1); }
   .mobile-bottom-nav .mobile-nav-add { color: #e9873a; }
   .mobile-bottom-nav .mobile-nav-add img { width: 50px; height: 50px; margin: -6px 0 -1px; }
+
+  .user-profile-page { padding-top: 0; }
+  .user-profile-page > .mobile-detail-header { width: calc(100% + 38px); margin: 0 0 20px -19px; position: sticky; top: 0; z-index: 120; height: 79px; display: flex; align-items: center; justify-content: center; background: #1d5a43; color: #f4f5ee; font-size: 25px; }
+  .user-profile-page .profile-sidebar { background: #fff; }
+  .user-profile-page .profile-content { min-width: 0; }
+  .user-profile-page .profile-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: #fff; border-radius: 12px; padding: 4px; border: 1px solid var(--border); }
+  .user-profile-page .profile-tab { min-height: 44px; padding: 8px 4px; font-size: 13px; }
+  .user-profile-page .profile-info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .donation-detail-page { padding: 0 0 155px; }
   .donation-detail-page .mobile-detail-header, .reservation-success-page .mobile-detail-header { position: sticky; top: 0; z-index: 120; height: 79px; display: flex; align-items: center; justify-content: center; background: #1d5a43; color: #f4f5ee; font-size: 25px; font-weight: 400; }
@@ -678,6 +692,8 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
   .donation-detail-page .detail-header, .donation-detail-page .detail-meta-grid, .donation-detail-page .detail-main > .section { display: none; }
   .donation-detail-page .detail-sidebar { display: none; }
   .donation-detail-page .request-reserve-card { display: none; }
+  .mobile-delete-donation { display: block; width: calc(100% - 42px); min-height: 50px; margin: 24px 21px 0; border: 1.5px solid var(--red); border-radius: 12px; color: #a52222; font-size: 16px; font-weight: 600; }
+  .mobile-delete-donation:disabled { opacity: .6; }
   .mobile-reserve-cta { position: fixed; z-index: 140; right: 24px; bottom: 107px; left: 24px; height: 60px; display: block; border-radius: 15px; background: #e9873a; color: #0a0a09; font-size: 20px; font-weight: 500; }
   .mobile-reserve-cta:disabled { opacity: .65; }
 
@@ -692,6 +708,7 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
 
 @media (min-width: 640px) and (max-width: 900px) {
   .page:not(.donation-detail-page):not(.reservation-success-page) { padding-inline: 28px; }
+  .user-profile-page > .mobile-detail-header { width: calc(100% + 56px); margin-left: -28px; }
   .donations-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
   .donation-card { min-height: 255px; }
   .donation-detail-page .detail-image, .donation-detail-page .detail-image-button { height: clamp(320px, 44vw, 440px); }

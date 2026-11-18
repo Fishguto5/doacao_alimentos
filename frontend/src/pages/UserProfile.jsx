@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
-import { navigate } from '../router'
+import { navigate, useRouter } from '../router'
 import DonationCard from '../components/DonationCard'
 
 const STATUS_LABELS = {
@@ -21,16 +21,18 @@ const SOL_STATUS_LABELS = {
 
 export default function UserProfile() {
   const { user, login, logout } = useUser()
-  const hash = window.location.hash
-  const initialTab = hash.includes('tab=') ? hash.split('tab=')[1] : 'doacoes'
-  const [tab, setTab] = useState(initialTab)
+  const hash = useRouter()
+  const requestedTab = new URLSearchParams(hash.split('?')[1] || '').get('tab')
+  const tab = ['doacoes', 'solicitacoes', 'notificacoes', 'perfil'].includes(requestedTab) ? requestedTab : 'doacoes'
   const [doacoes, setDoacoes] = useState([])
+  const [titulosDoacoes, setTitulosDoacoes] = useState({})
   const [solicitacoes, setSolicitacoes] = useState([])
   const [notificacoes, setNotificacoes] = useState([])
   const [loading, setLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [editForm, setEditForm] = useState({})
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const [feedback, setFeedback] = useState('')
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function UserProfile() {
       api.getNotificacoes(),
     ]).then(([d, s, n]) => {
       setDoacoes(d.filter(x => x.doador === user.id))
+      setTitulosDoacoes(Object.fromEntries(d.map(x => [x.id, x.titulo])))
       setSolicitacoes(s.filter(x => x.solicitante === user.id))
       setNotificacoes(n.filter(x => x.usuario === user.id))
       setLoading(false)
@@ -106,12 +109,33 @@ export default function UserProfile() {
     }
   }
 
+  async function handleDeleteDonation(doacao) {
+    if (!window.confirm(`Excluir a doação "${doacao.titulo}"? Solicitações e avaliações vinculadas também serão removidas. Esta ação não pode ser desfeita.`)) return
+    setDeletingId(doacao.id)
+    setFeedback('')
+    try {
+      await api.deleteDoacao(doacao.id)
+      setDoacoes(list => list.filter(item => item.id !== doacao.id))
+      setFeedback('Doação excluída com sucesso.')
+    } catch (err) {
+      setFeedback('Erro: ' + err.message)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   if (!user) return null
 
   const unread = notificacoes.filter(n => n.status === 'pendente').length
 
   return (
-    <main className="page">
+    <main className="page user-profile-page">
+      <div className="mobile-detail-header">
+        <button type="button" onClick={() => navigate('#/')} aria-label="Voltar">
+          <img src="/figma/mobile-back.png" alt="" />
+        </button>
+        <span>Meu perfil</span>
+      </div>
       <div className="profile-layout">
         <aside className="profile-sidebar">
           {user.foto_perfil_url ? (
@@ -129,17 +153,17 @@ export default function UserProfile() {
           {feedback && <div className={feedback.startsWith('Erro') ? 'error-msg' : 'success-msg'}>{feedback}</div>}
 
           <div className="profile-tabs">
-            <button className={`profile-tab${tab === 'doacoes' ? ' active' : ''}`} onClick={() => setTab('doacoes')}>
-              Minhas Doacoes ({doacoes.length})
+            <button className={`profile-tab${tab === 'doacoes' ? ' active' : ''}`} onClick={() => navigate('#/profile?tab=doacoes')}>
+              Minhas doações ({doacoes.length})
             </button>
-            <button className={`profile-tab${tab === 'solicitacoes' ? ' active' : ''}`} onClick={() => setTab('solicitacoes')}>
-              Solicitacoes ({solicitacoes.length})
+            <button className={`profile-tab${tab === 'solicitacoes' ? ' active' : ''}`} onClick={() => navigate('#/profile?tab=solicitacoes')}>
+              Reservas ({solicitacoes.length})
             </button>
-            <button className={`profile-tab${tab === 'notificacoes' ? ' active' : ''}`} onClick={() => setTab('notificacoes')}>
-              Notificacoes {unread > 0 && <span className="badge">{unread}</span>}
+            <button className={`profile-tab${tab === 'notificacoes' ? ' active' : ''}`} onClick={() => navigate('#/profile?tab=notificacoes')}>
+              Notificações {unread > 0 && <span className="badge">{unread}</span>}
             </button>
-            <button className={`profile-tab${tab === 'perfil' ? ' active' : ''}`} onClick={() => setTab('perfil')}>
-              Perfil
+            <button className={`profile-tab${tab === 'perfil' ? ' active' : ''}`} onClick={() => navigate('#/profile?tab=perfil')}>
+              Meus dados
             </button>
           </div>
 
@@ -157,7 +181,20 @@ export default function UserProfile() {
                 </div>
               ) : (
                 <div className="donations-grid">
-                  {doacoes.map(d => <DonationCard key={d.id} doacao={d} />)}
+                  {doacoes.map(d => (
+                    <div className="profile-donation-item" key={d.id}>
+                      <DonationCard doacao={d} />
+                      <button
+                        type="button"
+                        className="profile-donation-delete"
+                        onClick={() => handleDeleteDonation(d)}
+                        disabled={deletingId !== null}
+                        aria-label={`Excluir doação ${d.titulo}`}
+                      >
+                        {deletingId === d.id ? 'Excluindo...' : 'Excluir doação'}
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -178,6 +215,7 @@ export default function UserProfile() {
                         <span className={`badge badge-sol-${s.status}`}>{SOL_STATUS_LABELS[s.status]}</span>
                         <span className="card-date">{new Date(s.data_solicitacao).toLocaleDateString('pt-BR')}</span>
                       </div>
+                      <h3 className="solicitation-title">{titulosDoacoes[s.doacao] || `Doação #${s.doacao}`}</h3>
                       {s.mensagem && <p className="solicitation-msg">"{s.mensagem}"</p>}
                       <button className="link-btn" onClick={() => navigate(`#/donation/${s.doacao}`)}>Ver doacao -&gt;</button>
                     </div>

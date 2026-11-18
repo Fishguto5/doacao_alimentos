@@ -123,6 +123,19 @@ export default function DonationDetail({ id }) {
     }
   }
 
+  async function handleDelete() {
+    if (!window.confirm(`Excluir a doação "${doacao.titulo}"? Solicitações e avaliações vinculadas também serão removidas. Esta ação não pode ser desfeita.`)) return
+    setSubmitting(true)
+    setFeedback('')
+    try {
+      await api.deleteDoacao(doacao.id)
+      navigate('#/profile?tab=doacoes')
+    } catch (err) {
+      setFeedback('Erro: ' + err.message)
+      setSubmitting(false)
+    }
+  }
+
   async function handleConclude() {
     setSubmitting(true)
     try {
@@ -300,6 +313,7 @@ export default function DonationDetail({ id }) {
                   <button className="btn-primary btn-full" onClick={handleConclude} disabled={submitting}>Marcar como concluída</button>
                 )
               )}
+              <button className="btn-danger btn-full" onClick={handleDelete} disabled={submitting}>Excluir doação</button>
 
               {solicitacoes.length > 0 && (
                 <div className="requests-list">
@@ -402,6 +416,16 @@ export default function DonationDetail({ id }) {
           )}
         </aside>
       </div>
+      {isDonor && (
+        <button
+          type="button"
+          className="mobile-delete-donation"
+          onClick={handleDelete}
+          disabled={submitting}
+        >
+          {submitting ? 'Aguarde...' : 'Excluir doação'}
+        </button>
+      )}
       {doacao.status === 'disponivel' && !isDonor && (!user || !mySolicitation) && (
         <button
           type="button"

@@ -2,9 +2,9 @@ import { navigate } from '../router'
 
 const items = [
   { id: 'home', label: 'Tela inicial', path: '#/', icon: '/figma/mobile-home.png', className: 'mobile-nav-home' },
-  { id: 'reservations', label: <>Doações/<br />Reservas</>, path: '#/profile?tab=solicitacoes', icon: '/figma/mobile-reservations.png', className: '' },
+  { id: 'reservations', label: 'Reservas', path: '#/profile?tab=solicitacoes', icon: '/figma/mobile-reservations.png', className: '' },
   { id: 'create', label: 'Nova doação', path: '#/create', icon: '/figma/mobile-add.png', className: 'mobile-nav-add' },
-  { id: 'messages', label: 'Mensagens', path: '#/profile?tab=notificacoes', icon: '/figma/mobile-messages.png', className: '' },
+  { id: 'profile', label: 'Perfil', path: '#/profile?tab=perfil', icon: '/figma/mobile-profile.png', className: 'mobile-nav-profile' },
   { id: 'notifications', label: 'Notificações', path: '#/profile?tab=notificacoes', icon: '/figma/mobile-notifications.png', className: '' },
 ]
 

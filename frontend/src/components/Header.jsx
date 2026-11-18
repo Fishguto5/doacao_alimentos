@@ -8,7 +8,7 @@ export default function Header() {
   const { user, logout } = useUser()
   const hash = useRouter()
   const pathname = hash.replace('#', '').split('?')[0]
-  const isMobileDetailRoute = pathname.startsWith('/donation/') || pathname.startsWith('/reservation-success/')
+  const isMobileDetailRoute = pathname.startsWith('/donation/') || pathname.startsWith('/reservation-success/') || pathname === '/profile'
   const [notifCount, setNotifCount] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(Boolean(user))

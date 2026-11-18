@@ -14,6 +14,7 @@ vi.mock('../api', () => ({
     getAvaliacoes: vi.fn(),
     getUsuario: vi.fn(),
     createAvaliacao: vi.fn(),
+    deleteDoacao: vi.fn(),
   },
 }))
 
@@ -135,5 +136,31 @@ describe('DonationDetail', () => {
 
     expect(await screen.findByText('Doador Teste (doador)')).toBeInTheDocument()
     expect(screen.getByText('Receptor Teste (receptor)')).toBeInTheDocument()
+  })
+
+  it('lets the donor delete a donation from its detail', async () => {
+    useUser.mockReturnValue({ user: { id: 1 } })
+    mockDonationDetail()
+    api.deleteDoacao.mockResolvedValue(null)
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    render(<DonationDetail id={1} />)
+
+    const deleteButtons = await screen.findAllByRole('button', { name: 'Excluir doação' })
+    fireEvent.click(deleteButtons.at(-1))
+
+    await waitFor(() => expect(api.deleteDoacao).toHaveBeenCalledWith(1))
+    expect(navigate).toHaveBeenCalledWith('#/profile?tab=doacoes')
+    vi.restoreAllMocks()
+  })
+
+  it('does not offer deletion to the receiver', async () => {
+    useUser.mockReturnValue({ user: { id: 2 } })
+    mockDonationDetail({ receptor: 2 })
+
+    render(<DonationDetail id={1} />)
+
+    await screen.findAllByRole('heading', { name: /Doação de Teste/i })
+    expect(screen.queryByRole('button', { name: 'Excluir doação' })).not.toBeInTheDocument()
   })
 })
