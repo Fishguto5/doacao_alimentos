@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import UserProfile from './UserProfile'
 import MobileNav from '../components/MobileNav'
+import Header from '../components/Header'
 import { api } from '../api'
 import { useUser } from '../context/UserContext'
 
@@ -38,17 +39,22 @@ describe('UserProfile mobile navigation and donations', () => {
     vi.restoreAllMocks()
   })
 
-  it('opens personal data from the bottom navigation and switches between reservations and donations', async () => {
-    render(<><UserProfile /><MobileNav /></>)
+  it('opens personal data from the side menu and switches between reservations and donations', async () => {
+    window.location.hash = '#/'
+    render(<><Header /><UserProfile /><MobileNav /></>)
 
-    expect(await screen.findByText('Ver doacao ->')).toBeInTheDocument()
-    expect(screen.getByText('Hortifruti reservado')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Perfil' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Meu perfil' }))
     expect(await screen.findByText('ana@example.com')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Meus dados' })).toHaveClass('active')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Meus dados' })).toHaveClass('active'))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reservas' }))
+    expect(await screen.findByText('Hortifruti reservado')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /Minhas doações/ }))
     expect(await screen.findByText('Cesta de alimentos')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Mensagens' }))
+    expect(window.location.hash).toBe('#/chat')
   })
 
   it('removes a confirmed donation from the profile list', async () => {

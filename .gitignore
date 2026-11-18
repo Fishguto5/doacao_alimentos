@@ -11,6 +11,8 @@ frontend/src/components/*
 frontend/src/pages/*
 !frontend/src/pages/ReservationSuccess.jsx
 !frontend/src/pages/UserProfile.test.jsx
+!frontend/src/pages/Chat.jsx
+!frontend/src/pages/Chat.test.jsx
 !frontend/public/
 frontend/public/*
 !frontend/public/figma/

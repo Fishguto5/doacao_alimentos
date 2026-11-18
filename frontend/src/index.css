@@ -103,6 +103,7 @@ button { cursor: pointer; font-family: inherit; font-size: inherit; border: none
 .dropdown button:hover { background: var(--green-50); }
 .dropdown hr { border: none; border-top: 1px solid var(--gray-200); margin: 4px 0; }
 .dropdown .logout-btn { color: var(--red); }
+.mobile-drawer-backdrop { display: none; }
 
 /* ── Badge ─────────────────────────────────── */
 .badge {
@@ -431,6 +432,22 @@ select.input { appearance: auto; }
 .rating-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .rating-author { color: var(--text-muted); font-size: 13px; margin-bottom: 6px; }
 
+/* ── Donation messages ─────────────────────── */
+.chat-title { margin-bottom: 6px; font-size: 28px; }
+.chat-intro { margin-bottom: 24px; color: var(--text-muted); font-size: 14px; }
+.chat-conversations { display: flex; flex-direction: column; gap: 16px; max-width: 840px; }
+.chat-conversation { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--white); box-shadow: var(--shadow-sm); }
+.chat-conversation-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.chat-conversation-header h2 { margin-top: 3px; font-size: 18px; }
+.chat-role { color: var(--green-800); font-size: 12px; font-weight: 700; }
+.chat-empty { padding: 20px; color: var(--text-muted); font-size: 14px; }
+.chat-comments { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; }
+.chat-comment { max-width: 85%; align-self: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--green-50); color: var(--green-900); }
+.chat-comment.own { align-self: flex-end; background: #e2f4e8; }
+.chat-comment-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 5px; font-size: 12px; }
+.chat-comment-meta span, .chat-comment-meta time { color: var(--text-muted); }
+.chat-comment p { font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+
 /* ── Solicitacoes / Notificacoes ────────────── */
 .solicitacoes-list { display: flex; flex-direction: column; gap: 12px; }
 .solicitation-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
@@ -619,6 +636,7 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
 @media (max-width: 900px) {
   body { background: #f4f5ee; }
   .header { position: sticky; top: 0; z-index: 110; min-height: 79px; border: 0; border-radius: 0; background: #1d5a43; box-shadow: none; }
+  .header.header-menu-open { z-index: 200; }
   .header-detail-route { display: none; }
   .header-inner { display: none; }
   .mobile-home-toolbar { height: 79px; padding: 0 16px; display: flex; align-items: center; gap: 28px; }
@@ -628,6 +646,12 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
   .mobile-search-field input { width: 100%; height: 100%; padding: 0 48px 0 14px; border: 0; outline: 0; background: transparent; color: #182f27; font: inherit; }
   .mobile-search-field input::-webkit-search-cancel-button { display: none; }
   .mobile-search-field img { position: absolute; right: 11px; width: 27px; height: 27px; object-fit: contain; pointer-events: none; }
+  .mobile-drawer-backdrop { position: fixed; inset: 0; display: block; background: rgba(13, 38, 28, .55); }
+  .mobile-drawer { width: min(82vw, 320px); height: 100%; padding: 22px 18px; display: flex; flex-direction: column; gap: 4px; background: #f4f5ee; box-shadow: 8px 0 24px rgba(0,0,0,.2); }
+  .mobile-drawer-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; color: #1d5a43; }
+  .mobile-drawer-heading button { width: 40px; height: 40px; font-size: 30px; line-height: 1; }
+  .mobile-drawer > button { width: 100%; padding: 14px 12px; border-radius: 8px; color: #1d5a43; text-align: left; font-weight: 600; }
+  .mobile-drawer > button:hover, .mobile-drawer > button:focus-visible { background: #dceee2; }
   .page { max-width: 100%; padding: 0 19px 108px; }
   .hero-banner, .results-heading { display: none; }
   .mobile-list-heading { min-height: 90px; display: flex; align-items: center; justify-content: space-between; padding: 0 3px; }
@@ -657,7 +681,6 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
   .mobile-bottom-nav { position: fixed; z-index: 150; right: 0; bottom: 0; left: 0; height: 75px; padding: 4px 5px 3px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; background: #1d5a43; color: #fff; }
   .mobile-bottom-nav button { min-width: 0; height: 68px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; color: inherit; font-size: 10px; line-height: 11px; font-weight: 600; text-align: center; }
   .mobile-bottom-nav img { width: 40px; height: 40px; object-fit: contain; }
-  .mobile-bottom-nav .mobile-nav-profile img { width: 32px; height: 32px; margin: 4px 0; filter: invert(1); }
   .mobile-bottom-nav .mobile-nav-add { color: #e9873a; }
   .mobile-bottom-nav .mobile-nav-add img { width: 50px; height: 50px; margin: -6px 0 -1px; }
 
@@ -668,6 +691,12 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
   .user-profile-page .profile-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: #fff; border-radius: 12px; padding: 4px; border: 1px solid var(--border); }
   .user-profile-page .profile-tab { min-height: 44px; padding: 8px 4px; font-size: 13px; }
   .user-profile-page .profile-info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chat-page { padding-top: 0; }
+  .chat-page > .mobile-detail-header { width: calc(100% + 38px); margin: 0 0 20px -19px; position: sticky; top: 0; z-index: 120; height: 79px; display: flex; align-items: center; justify-content: center; background: #1d5a43; color: #f4f5ee; font-size: 25px; }
+  .chat-title { font-size: 23px; }
+  .chat-conversation-header { padding: 14px; }
+  .chat-comments { padding: 14px; }
+  .chat-comment { max-width: 93%; }
 
   .donation-detail-page { padding: 0 0 155px; }
   .donation-detail-page .mobile-detail-header, .reservation-success-page .mobile-detail-header { position: sticky; top: 0; z-index: 120; height: 79px; display: flex; align-items: center; justify-content: center; background: #1d5a43; color: #f4f5ee; font-size: 25px; font-weight: 400; }
@@ -709,6 +738,7 @@ body { background: #f3faf7; font-family: Inter, system-ui, 'Segoe UI', Roboto, s
 @media (min-width: 640px) and (max-width: 900px) {
   .page:not(.donation-detail-page):not(.reservation-success-page) { padding-inline: 28px; }
   .user-profile-page > .mobile-detail-header { width: calc(100% + 56px); margin-left: -28px; }
+  .chat-page > .mobile-detail-header { width: calc(100% + 56px); margin-left: -28px; }
   .donations-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
   .donation-card { min-height: 255px; }
   .donation-detail-page .detail-image, .donation-detail-page .detail-image-button { height: clamp(320px, 44vw, 440px); }

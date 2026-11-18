@@ -9,6 +9,7 @@ import PublicUserProfile from './pages/PublicUserProfile'
 import Register from './pages/Register'
 import ReservationSuccess from './pages/ReservationSuccess'
 import MobileNav from './components/MobileNav'
+import Chat from './pages/Chat'
 
 function Router() {
   const hash = useRouter()
@@ -22,6 +23,7 @@ function Router() {
     return <ReservationSuccess id={id} />
   }
   if (path === '/profile') return <UserProfile />
+  if (path === '/chat') return <Chat />
   if (path.startsWith('/users/')) {
     const id = path.replace('/users/', '')
     return <PublicUserProfile id={id} />

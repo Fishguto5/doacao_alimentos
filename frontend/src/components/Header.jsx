@@ -8,9 +8,10 @@ export default function Header() {
   const { user, logout } = useUser()
   const hash = useRouter()
   const pathname = hash.replace('#', '').split('?')[0]
-  const isMobileDetailRoute = pathname.startsWith('/donation/') || pathname.startsWith('/reservation-success/') || pathname === '/profile'
+  const isMobileDetailRoute = pathname.startsWith('/donation/') || pathname.startsWith('/reservation-success/') || pathname === '/profile' || pathname === '/chat'
   const [notifCount, setNotifCount] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(Boolean(user))
   const [notifications, setNotifications] = useState([])
   const notificationRef = useRef(null)
@@ -38,6 +39,17 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', closeOnOutsideClick)
   }, [])
 
+  useEffect(() => {
+    const close = () => setMobileMenuOpen(false)
+    const closeOnEscape = event => { if (event.key === 'Escape') close() }
+    window.addEventListener('hashchange', close)
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      window.removeEventListener('hashchange', close)
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [])
+
   async function markAllNotificationsRead() {
     const unread = notifications.filter(n => n.status === 'pendente')
     const results = await Promise.allSettled(
@@ -60,20 +72,47 @@ export default function Header() {
   function go(path) {
     navigate(path)
     setMenuOpen(false)
+    setMobileMenuOpen(false)
     setNotificationsOpen(false)
   }
 
   return (
-    <header className={`header${isMobileDetailRoute ? ' header-detail-route' : ''}`}>
+    <header className={`header${isMobileDetailRoute ? ' header-detail-route' : ''}${mobileMenuOpen ? ' header-menu-open' : ''}`}>
       {!isMobileDetailRoute && (
         <div className="mobile-home-toolbar">
-          <button type="button" className="mobile-menu-button" aria-label="Abrir filtros" onClick={() => window.dispatchEvent(new Event('toggle-donation-filters'))}>
+          <button type="button" className="mobile-menu-button" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="mobile-side-menu" onClick={() => setMobileMenuOpen(open => !open)}>
             <span /><span /><span />
           </button>
           <label className="mobile-search-field">
             <input type="search" placeholder="Buscar doações..." aria-label="Buscar doações" onChange={event => window.dispatchEvent(new CustomEvent('donation-search', { detail: event.target.value }))} />
             <img src="/figma/mobile-search.png" alt="" />
           </label>
+        </div>
+      )}
+      {mobileMenuOpen && !isMobileDetailRoute && (
+        <div className="mobile-drawer-backdrop" onClick={() => setMobileMenuOpen(false)}>
+          <aside id="mobile-side-menu" className="mobile-drawer" aria-label="Menu lateral" onClick={event => event.stopPropagation()}>
+            <div className="mobile-drawer-heading">
+              <strong>DoacaoAlimentos</strong>
+              <button type="button" aria-label="Fechar menu" onClick={() => setMobileMenuOpen(false)}>×</button>
+            </div>
+            {user ? (
+              <>
+                <button type="button" onClick={() => go('#/profile?tab=perfil')}>Meu perfil</button>
+                <button type="button" onClick={() => go('#/profile?tab=doacoes')}>Minhas doações</button>
+                <button type="button" onClick={() => go('#/profile?tab=solicitacoes')}>Reservas</button>
+                <button type="button" onClick={() => go('#/chat')}>Mensagens</button>
+              </>
+            ) : (
+              <button type="button" onClick={() => go('#/register?tab=login')}>Entrar / Cadastrar</button>
+            )}
+            {pathname === '/' && (
+              <button type="button" onClick={() => {
+                setMobileMenuOpen(false)
+                window.dispatchEvent(new Event('toggle-donation-filters'))
+              }}>Filtros de doações</button>
+            )}
+          </aside>
         </div>
       )}
       <div className="header-inner">
